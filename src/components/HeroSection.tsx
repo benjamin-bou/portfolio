@@ -25,7 +25,7 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-4xl w-full text-center">
         {/* Name */}
         <div className={`mb-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-3 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-3 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent leading-tight pb-2">
             Benjamin Boutrois
           </h1>
           <div className="h-1 w-48 mx-auto bg-gradient-to-r from-transparent via-warm-orange to-transparent rounded-full transform scale-x-0 animate-expand-width [animation-delay:300ms]" />
@@ -40,9 +40,6 @@ const HeroSection = () => {
         <div className="space-y-2 mb-10 max-w-2xl mx-auto">
           <p className={`text-base sm:text-lg text-slate-600 dark:text-slate-300 transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             Étudiant en alternance passionné par le développement web moderne.
-          </p>
-          <p className={`text-base sm:text-lg text-slate-500 dark:text-slate-400 transition-all duration-700 delay-[400ms] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            Je cherche à relever de nouveaux défis.
           </p>
         </div>
 
