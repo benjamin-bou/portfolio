@@ -62,13 +62,13 @@
 
 @keyframes bounceArrow {
   0%, 20%, 50%, 80%, 100% {
-    transform: rotate(-45deg) translateY(0);
+    transform: translateY(0);
   }
   40% {
-    transform: rotate(-45deg) translateY(-10px);
+    transform: translateY(8px);
   }
   60% {
-    transform: rotate(-45deg) translateY(-5px);
+    transform: translateY(4px);
   }
 }
 
