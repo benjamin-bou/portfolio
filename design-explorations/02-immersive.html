@@ -65,159 +65,14 @@
       radial-gradient(120% 60% at 50% 100%, rgba(255,176,87,.9) 0%, rgba(255,106,31,.7) 25%, rgba(184,46,18,.6) 45%, rgba(40,14,8,.95) 80%, #0a0604 100%);
     will-change:transform;
   }
-  /* SUN — layered stage: rays, halos, core, beam, embers */
-  .sun-stage{
-    position:absolute;left:50%;bottom:-8%;width:52vw;height:52vw;
-    transform:translateX(-50%);pointer-events:none;z-index:0;
-    will-change:transform;
-    filter:drop-shadow(0 0 60px rgba(255,140,60,.35));
-  }
-
-  /* Rotating rays — conic gradient */
-  .sun-rays{
-    position:absolute;inset:-45%;border-radius:50%;
-    background:conic-gradient(from 0deg,
-      transparent 0deg, rgba(255,176,87,.28) 5deg, transparent 10deg,
-      transparent 20deg, rgba(255,210,138,.22) 26deg, transparent 32deg,
-      transparent 50deg, rgba(255,176,87,.3) 56deg, transparent 62deg,
-      transparent 85deg, rgba(255,210,138,.18) 92deg, transparent 98deg,
-      transparent 120deg, rgba(255,176,87,.25) 126deg, transparent 132deg,
-      transparent 155deg, rgba(255,210,138,.22) 162deg, transparent 168deg,
-      transparent 195deg, rgba(255,176,87,.28) 200deg, transparent 206deg,
-      transparent 230deg, rgba(255,210,138,.2) 236deg, transparent 242deg,
-      transparent 265deg, rgba(255,176,87,.26) 271deg, transparent 277deg,
-      transparent 300deg, rgba(255,210,138,.22) 306deg, transparent 312deg,
-      transparent 335deg, rgba(255,176,87,.24) 340deg, transparent 346deg
-    );
-    mix-blend-mode:screen;opacity:.85;
-    -webkit-mask:radial-gradient(circle,transparent 30%,#000 42%,#000 72%,transparent 95%);
-            mask:radial-gradient(circle,transparent 30%,#000 42%,#000 72%,transparent 95%);
-    animation:sun-rotate 40s linear infinite;
-    filter:blur(6px);
-  }
-  .sun-rays-2{
-    position:absolute;inset:-30%;border-radius:50%;
-    background:conic-gradient(from 180deg,
-      transparent 0deg, rgba(255,220,150,.35) 8deg, transparent 16deg,
-      transparent 60deg, rgba(255,180,90,.3) 68deg, transparent 76deg,
-      transparent 130deg, rgba(255,220,150,.3) 138deg, transparent 146deg,
-      transparent 210deg, rgba(255,180,90,.3) 218deg, transparent 226deg,
-      transparent 290deg, rgba(255,220,150,.3) 298deg, transparent 306deg
-    );
-    mix-blend-mode:screen;opacity:.7;
-    -webkit-mask:radial-gradient(circle,transparent 40%,#000 52%,#000 78%,transparent 98%);
-            mask:radial-gradient(circle,transparent 40%,#000 52%,#000 78%,transparent 98%);
-    animation:sun-rotate-rev 60s linear infinite;
-    filter:blur(3px);
-  }
-  @keyframes sun-rotate{to{transform:rotate(360deg)}}
-  @keyframes sun-rotate-rev{to{transform:rotate(-360deg)}}
-
-  /* Pulsating halos */
-  .sun-halo{
-    position:absolute;left:50%;top:50%;border-radius:50%;
-    transform:translate(-50%,-50%);mix-blend-mode:screen;
-  }
-  .sun-halo-1{
-    width:140%;height:140%;
-    background:radial-gradient(circle,rgba(255,200,120,.35),rgba(255,120,50,.08) 45%,transparent 70%);
-    animation:halo-breathe 5s ease-in-out infinite;
-    filter:blur(10px);
-  }
-  .sun-halo-2{
-    width:200%;height:200%;
-    background:radial-gradient(circle,rgba(255,160,80,.22),transparent 60%);
-    animation:halo-breathe 7s ease-in-out infinite reverse;
-    filter:blur(30px);
-  }
-  @keyframes halo-breathe{
-    0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7}
-    50%{transform:translate(-50%,-50%) scale(1.12);opacity:1}
-  }
-
-  /* Shock-wave rings that emit outward */
-  .sun-wave{
-    position:absolute;left:50%;top:50%;width:60%;height:60%;
-    border-radius:50%;border:1px solid rgba(255,200,120,.4);
-    transform:translate(-50%,-50%) scale(.4);opacity:0;
-    animation:wave 6s ease-out infinite;
-    mix-blend-mode:screen;
-  }
-  .sun-wave.d2{animation-delay:2s}
-  .sun-wave.d3{animation-delay:4s}
-  @keyframes wave{
-    0%{transform:translate(-50%,-50%) scale(.4);opacity:0;border-color:rgba(255,220,150,.7)}
-    20%{opacity:1}
-    100%{transform:translate(-50%,-50%) scale(2.6);opacity:0;border-color:rgba(255,120,50,0)}
-  }
-
-  /* Core — the actual sun disc */
   .sun{
-    position:absolute;left:50%;top:50%;width:100%;height:100%;
-    background:radial-gradient(circle, #fff 0%, var(--orange-glow) 10%, #ffa04a 35%, rgba(255,160,74,0) 72%);
-    transform:translate(-50%,-50%);filter:blur(2px);
-    animation:pulse 6s ease-in-out infinite;
+    position:absolute;left:50%;bottom:-8%;width:52vw;height:52vw;
+    background:radial-gradient(circle, var(--orange-glow) 0%, #ffa04a 30%, rgba(255,160,74,0) 70%);
+    transform:translateX(-50%);filter:blur(2px);
+    animation:pulse 8s ease-in-out infinite;
     will-change:transform;
   }
-  @keyframes pulse{
-    0%,100%{transform:translate(-50%,-50%) scale(1);filter:blur(2px) brightness(1)}
-    50%{transform:translate(-50%,-50%) scale(1.04);filter:blur(3px) brightness(1.15)}
-  }
-
-  /* Vertical light beam — sun reflecting on water */
-  .sun-beam{
-    position:absolute;left:50%;top:50%;bottom:-100%;width:18%;
-    transform:translateX(-50%);
-    background:linear-gradient(180deg,rgba(255,210,138,.5),rgba(255,140,60,.25) 30%,rgba(255,106,31,.12) 60%,transparent);
-    filter:blur(20px);mix-blend-mode:screen;
-    -webkit-mask:linear-gradient(180deg,#000,transparent);
-            mask:linear-gradient(180deg,#000,transparent);
-    animation:beam-sway 5s ease-in-out infinite;
-    transform-origin:top center;
-  }
-  @keyframes beam-sway{
-    0%,100%{transform:translateX(-50%) scaleX(1) skewX(0deg);opacity:.9}
-    50%{transform:translateX(-50%) scaleX(1.15) skewX(-1.5deg);opacity:1}
-  }
-
-  /* Drifting embers */
-  .embers{position:absolute;inset:-20% -20% 0 -20%;pointer-events:none;overflow:visible}
-  .ember{
-    position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;
-    background:radial-gradient(circle,#ffd28a,rgba(255,106,31,0) 70%);
-    filter:blur(.5px);opacity:0;
-    animation:ember-rise 8s ease-in infinite;
-  }
-  .ember:nth-child(1){left:20%;animation-delay:0s;animation-duration:7s}
-  .ember:nth-child(2){left:35%;animation-delay:1.5s;animation-duration:9s}
-  .ember:nth-child(3){left:48%;animation-delay:3s;animation-duration:6.5s}
-  .ember:nth-child(4){left:55%;animation-delay:.8s;animation-duration:8s}
-  .ember:nth-child(5){left:65%;animation-delay:2.2s;animation-duration:10s}
-  .ember:nth-child(6){left:75%;animation-delay:4s;animation-duration:7.5s}
-  .ember:nth-child(7){left:82%;animation-delay:5s;animation-duration:8.5s}
-  .ember:nth-child(8){left:42%;animation-delay:6s;animation-duration:9.5s}
-  @keyframes ember-rise{
-    0%{transform:translateY(0) translateX(0) scale(.5);opacity:0}
-    10%{opacity:1}
-    50%{transform:translateY(-40vh) translateX(20px) scale(1);opacity:.9}
-    90%{opacity:0}
-    100%{transform:translateY(-80vh) translateX(-30px) scale(.3);opacity:0}
-  }
-
-  /* Flare glint that sweeps across the horizon */
-  .sun-flare{
-    position:absolute;left:50%;top:50%;width:180%;height:4px;
-    transform:translate(-50%,-50%) rotate(-6deg);
-    background:linear-gradient(90deg,transparent,rgba(255,255,240,.6),transparent);
-    filter:blur(2px);opacity:0;
-    animation:flare 7s ease-in-out infinite;
-    mix-blend-mode:screen;
-  }
-  @keyframes flare{
-    0%,85%,100%{opacity:0;transform:translate(-50%,-50%) rotate(-6deg) scaleX(0)}
-    88%{opacity:1;transform:translate(-50%,-50%) rotate(-6deg) scaleX(1)}
-    92%{opacity:.8;transform:translate(-50%,-50%) rotate(-6deg) scaleX(1.1)}
-  }
+  @keyframes pulse{0%,100%{transform:translate(-50%,0) scale(1);opacity:.9}50%{transform:translate(-50%,-2%) scale(1.03);opacity:1}}
   .horizon{position:absolute;left:0;right:0;bottom:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,200,140,.6),transparent)}
   .ridge{position:absolute;left:0;right:0;bottom:0;height:18vh;background:linear-gradient(180deg,transparent,#0a0604);z-index:1}
 
@@ -411,6 +266,62 @@
 
   .back{position:fixed;top:64px;left:24px;z-index:200;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream);text-decoration:none;background:rgba(10,6,4,.6);backdrop-filter:blur(8px);padding:10px 14px;border:1px solid rgba(243,232,216,.3);border-radius:999px;transition:all .3s}
   .back:hover{background:var(--orange);color:#0a0604;border-color:var(--orange)}
+
+  /* mono inline helper */
+  .mono{font-family:"JetBrains Mono",monospace;font-weight:500;letter-spacing:-.01em}
+
+  /* ============ Persistent floating terminal ============ */
+  .terminal{
+    position:fixed;right:clamp(24px,4vw,56px);top:clamp(96px,18vh,180px);
+    width:min(420px,34vw);z-index:40;
+    background:rgba(15,8,4,.78);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,176,87,.22);border-radius:10px;
+    box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,106,31,.06) inset,0 0 40px rgba(255,106,31,.15);
+    overflow:hidden;opacity:0;transform:translateY(30px) rotate(-1.2deg);
+    animation:termIn 1.2s 1.7s cubic-bezier(.2,.8,.2,1) forwards;
+    will-change:transform,opacity;
+    transition:opacity .6s ease,transform .6s ease;
+  }
+  @keyframes termIn{to{opacity:1;transform:translateY(0) rotate(-1.2deg)}}
+  .terminal.hidden{opacity:0;transform:translateY(20px) rotate(-1.2deg) scale(.98);pointer-events:none}
+  .terminal:hover{transform:translateY(-4px) rotate(0deg)}
+  .terminal-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid rgba(243,232,216,.08);background:rgba(0,0,0,.3);position:relative}
+  .terminal-bar span{width:10px;height:10px;border-radius:999px;background:#555}
+  .terminal-bar span:nth-child(1){background:#ff5f57}
+  .terminal-bar span:nth-child(2){background:#ffbd2e}
+  .terminal-bar span:nth-child(3){background:#28ca42}
+  .terminal-title{position:absolute;left:50%;transform:translateX(-50%);font-family:"JetBrains Mono",monospace;font-size:11px;color:rgba(243,232,216,.5)}
+  .terminal-body{padding:16px 18px;font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.7;white-space:pre;color:rgba(243,232,216,.88);max-height:clamp(220px,46vh,360px);overflow-y:auto;overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(255,106,31,.4) transparent}
+  .terminal-body::-webkit-scrollbar{width:6px;height:6px}
+  .terminal-body::-webkit-scrollbar-thumb{background:rgba(255,106,31,.4);border-radius:3px}
+  .tl-prompt{color:var(--orange-hot)}
+  .tl-cmd{color:#ffd28a}
+  .tl-out{color:rgba(243,232,216,.65)}
+  .tl-cursor{display:inline-block;color:var(--orange);animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+  @media (max-width:900px){.terminal{position:relative;right:auto;top:auto;width:100%;margin:32px 0 0;transform:none;animation:fadeUp 1.2s 1.7s forwards}}
+
+  /* ============ CHAPTER I : tech grid ============ */
+  .tech-grid{
+    margin-top:80px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;
+  }
+  @media (max-width:900px){.tech-grid{grid-template-columns:1fr}}
+  .tech-col{
+    background:rgba(20,10,6,.5);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,176,87,.18);border-radius:8px;padding:24px 26px;
+    transition:transform .4s,border-color .4s,box-shadow .4s;position:relative;overflow:hidden;
+  }
+  .tech-col::before{content:"";position:absolute;inset:0;background:radial-gradient(80% 120% at 100% 0%,rgba(255,106,31,.12),transparent 60%);pointer-events:none;opacity:0;transition:opacity .4s}
+  .tech-col:hover{transform:translateY(-4px);border-color:rgba(255,176,87,.5);box-shadow:0 10px 40px rgba(255,106,31,.15)}
+  .tech-col:hover::before{opacity:1}
+  .tech-label{font-family:"Instrument Serif",serif;font-style:italic;font-size:18px;color:var(--orange-hot);margin-bottom:16px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  .tech-label::before{content:"";width:18px;height:1px;background:var(--orange-hot);opacity:.6}
+  .tech-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .tech-col li{font-family:"Instrument Serif",serif;font-size:16px;color:rgba(243,232,216,.82);line-height:1.4}
+
+  /* CTA prompt */
+  .cta-prompt{font-family:"Instrument Serif",serif;font-style:italic;font-size:18px;margin-bottom:10px;color:var(--orange-hot);position:relative;z-index:1}
+
 </style>
 </head>
 <body>
@@ -418,6 +329,12 @@
 <div class="glow-cursor" id="cursor"></div>
 <div class="vignette"></div>
 <a class="back" href="index.html">← Explorations</a>
+
+<!-- Persistent terminal — content swaps with scroll -->
+<div class="terminal" id="terminal" aria-hidden="true">
+  <div class="terminal-bar"><span></span><span></span><span></span><div class="terminal-title" id="terminal-title">~/benjamin — zsh</div></div>
+  <div class="terminal-body" id="terminal-body"></div>
+</div>
 
 <nav id="nav">
   <div class="mark">Benjamin <b>Boutrois</b></div>
@@ -431,90 +348,108 @@
 <section class="hero">
   <div class="sky" id="sky"></div>
   <div class="stars"></div>
-  <div class="sun-stage" id="sun">
-    <div class="sun-rays"></div>
-    <div class="sun-rays-2"></div>
-    <div class="sun-halo sun-halo-2"></div>
-    <div class="sun-halo sun-halo-1"></div>
-    <div class="sun-wave"></div>
-    <div class="sun-wave d2"></div>
-    <div class="sun-wave d3"></div>
-    <div class="sun-beam"></div>
-    <div class="sun"></div>
-    <div class="sun-flare"></div>
-  </div>
-  <div class="embers" aria-hidden="true">
-    <span class="ember"></span><span class="ember"></span><span class="ember"></span>
-    <span class="ember"></span><span class="ember"></span><span class="ember"></span>
-    <span class="ember"></span><span class="ember"></span>
-  </div>
+  <div class="sun" id="sun"></div>
   <div class="horizon"></div>
   <div class="ridge"></div>
 
   <div class="hero-content">
-    <div class="eyebrow">Développeur d'interfaces · Paris</div>
+    <div class="eyebrow">Développeur full-stack · Epitech · Paris</div>
     <h1>
-      <span class="word w1">Des</span>
-      <span class="word w2">écrans</span>
-      <span class="word w3">qui</span>
-      <span class="word w4"><em>respirent</em>,</span>
-      <span class="word w5">des</span>
-      <span class="word w6">produits</span>
-      <span class="word w7">qui</span>
-      <span class="word w8"><em>tiennent</em>.</span>
+      <span class="word w1">Je</span>
+      <span class="word w2">conçois</span>
+      <span class="word w3">des</span>
+      <span class="word w4"><em>produits</em></span>
+      <span class="word w5">web,</span>
+      <span class="word w6">de</span>
+      <span class="word w7">l'<em>interface</em></span>
+      <span class="word w8">au serveur.</span>
     </h1>
+
     <div class="hero-foot">
-      <p>Je construis des interfaces comme on compose une scène : une lumière, un rythme, une promesse tenue. Entrons dans le récit — quatre chapitres.</p>
-      <div class="scroll-hint">Scroll · découvrir</div>
+      <p>Étudiant à Epitech, alternant chez <strong style="color:var(--orange-hot);font-weight:500">Spayr</strong>. Je code des applications web au quotidien — React, TypeScript, Node — avec l'envie que ce soit propre, clair, et plutôt agréable à utiliser.</p>
+      <div class="scroll-hint">Scroll · la suite</div>
     </div>
   </div>
 </section>
 
 <section class="chapter">
-  <div class="chapter-tag reveal">Chapitre I · L'approche</div>
-  <h2 class="reveal delay-1">Un produit, ce n'est pas une <em>liste de features</em>. C'est une <em>expérience</em> continue.</h2>
-  <p class="big reveal delay-2">Chaque projet commence par une <em>conversation</em>. On cherche la vraie question, puis on dessine la réponse la plus simple possible — ni plus, ni moins.</p>
+  <div class="chapter-tag reveal">Chapitre I · Ce que je fais</div>
+  <h2 class="reveal delay-1">Du <em>front</em> au <em>back</em>, une continuité — pas deux mondes.</h2>
+  <p class="big reveal delay-2">J'aime les interfaces <em>soignées</em> autant que les API claires. Je choisis des technologies éprouvées, j'écris du code lisible, et je soigne ce que l'utilisateur voit comme ce que l'équipe d'après lira.</p>
+
+
+
+  <!-- tech grid -->
+  <div class="tech-grid reveal delay-3">
+    <div class="tech-col">
+      <div class="tech-label">Interface</div>
+      <ul>
+        <li>React · TypeScript</li>
+        <li>Tailwind · Motion</li>
+        <li>Design systems</li>
+        <li>Accessibilité</li>
+      </ul>
+    </div>
+    <div class="tech-col">
+      <div class="tech-label">Serveur</div>
+      <ul>
+        <li>Node · Express</li>
+        <li>PostgreSQL</li>
+        <li>API REST</li>
+        <li>Authentification</li>
+      </ul>
+    </div>
+    <div class="tech-col">
+      <div class="tech-label">Au quotidien</div>
+      <ul>
+        <li>Git &amp; revue de code</li>
+        <li>Tests automatisés</li>
+        <li>Docker · CI/CD</li>
+        <li>Figma &amp; design</li>
+      </ul>
+    </div>
+  </div>
 </section>
 
 <section class="gallery" id="work">
   <div class="gallery-head">
-    <h3 class="reveal">Chapitre II · <em>Travaux</em></h3>
-    <div class="legend reveal delay-1">04 projets sélectionnés · glissez →</div>
+    <h3 class="reveal">Chapitre II · <em>Quelques</em> projets</h3>
+    <div class="legend reveal delay-1">4 projets · alternance, école, personnels · faire défiler →</div>
   </div>
   <div class="track">
     <article class="card reveal"><div class="bg card-1" style="position:absolute;inset:0"></div>
       <div class="info">
-        <div class="index">01 / Maison d'édition</div>
+        <div class="index">01 / Alternance · Spayr</div>
         <div>
-          <div class="title">Une bibliothèque qui <em>respecte la lecture</em>.</div>
-          <div class="meta">Next.js · CMS · 2025</div>
+          <div class="title">Développement produit en <em>startup</em>.</div>
+          <div class="meta">React · TypeScript · Node · 2025</div>
         </div>
       </div>
     </article>
     <article class="card reveal delay-1"><div class="bg card-2" style="position:absolute;inset:0"></div>
       <div class="info">
-        <div class="index">02 / Coopérative</div>
+        <div class="index">02 / Alternance · Cap Achat</div>
         <div>
-          <div class="title">Des <em>données terrain</em>, parlantes.</div>
-          <div class="meta">React · Data · 2025</div>
+          <div class="title">Refonte d'un <em>outil métier</em>.</div>
+          <div class="meta">React · API REST · 2024</div>
         </div>
       </div>
     </article>
     <article class="card reveal delay-2"><div class="bg card-3" style="position:absolute;inset:0"></div>
       <div class="info">
-        <div class="index">03 / Céramique</div>
+        <div class="index">03 / Projet école</div>
         <div>
-          <div class="title">Un site à <em>l'image des pièces</em>.</div>
-          <div class="meta">Direction · E-commerce · 2024</div>
+          <div class="title">Une application <em>full-stack</em>, de bout en bout.</div>
+          <div class="meta">Next.js · PostgreSQL · 2025</div>
         </div>
       </div>
     </article>
     <article class="card reveal delay-3"><div class="bg card-4" style="position:absolute;inset:0"></div>
       <div class="info">
-        <div class="index">04 / Outil interne</div>
+        <div class="index">04 / Projet perso</div>
         <div>
-          <div class="title">8h / jour, <em>sans friction</em>.</div>
-          <div class="meta">TypeScript · DS · 2024</div>
+          <div class="title">Ce <em>portfolio</em>, entièrement fait main.</div>
+          <div class="meta">React · Vite · Tailwind · 2026</div>
         </div>
       </div>
     </article>
@@ -530,8 +465,8 @@
 <section class="journey" id="journey">
   <div class="chapter-tag reveal">Chapitre III · Le parcours</div>
   <div class="journey-head">
-    <h2 class="reveal delay-1">Un chemin <em>entre l'école</em> et <em>le terrain</em>.</h2>
-    <p class="reveal delay-2">Cinq années à naviguer entre cours, alternances et projets personnels. Chaque étape a ajouté une couche — technique, humaine, parfois les deux.</p>
+    <h2 class="reveal delay-1">Deux trajets en <em>parallèle</em> : l'école et l'alternance.</h2>
+    <p class="reveal delay-2">Cinq ans à construire mon profil de développeur — la théorie d'un côté (Licence, Bachelor, Epitech), la pratique en entreprise de l'autre. Les deux se nourrissent.</p>
   </div>
 
   <div class="timeline" id="timeline">
@@ -563,7 +498,7 @@
           <h4>Licence <em>Informatique</em></h4>
           <div class="org">Université</div>
           <span class="type edu">Formation · fondations</span>
-          <p class="desc">Algorithmique, systèmes, premiers projets web. C'est là que j'ai compris que le code était surtout un outil de <em>traduction</em>.</p>
+          <p class="desc">Algorithmique, structures de données, systèmes, programmation orientée objet. Les fondations solides sur lesquelles je <em>m'appuie encore tous les jours</em>.</p>
         </div>
         <div class="dot" id="dot-start"></div>
       </div>
@@ -579,7 +514,7 @@
           <h4>Bachelor <em>Développeur Web</em></h4>
           <div class="org">École</div>
           <span class="type edu">Formation</span>
-          <p class="desc">Spécialisation front / full-stack. React, TypeScript, design systems — et l'habitude de livrer du produit, pas juste du code.</p>
+          <p class="desc">Spécialisation front et full-stack. React, TypeScript, Node — et l'année où j'ai vraiment commencé à me sentir <em>développeur</em>, pas juste étudiant.</p>
         </div>
         <div class="dot" id="dot-bachelor"></div>
       </div>
@@ -591,7 +526,7 @@
           <h4>Alternant <em>développeur</em></h4>
           <div class="org">Cap Achat</div>
           <span class="type work">Expérience</span>
-          <p class="desc">Première immersion en équipe produit. J'apprends à négocier les priorités, à expliquer les choix techniques, à livrer sous contrainte.</p>
+          <p class="desc">Ma première alternance. J'y découvre le vrai rythme du métier : lire du code existant, faire évoluer un outil utilisé chaque jour, livrer des features qui comptent.</p>
         </div>
       </div>
     </div>
@@ -604,7 +539,7 @@
           <h4><em>Epitech</em></h4>
           <div class="org">École d'Informatique</div>
           <span class="type edu">Formation</span>
-          <p class="desc">Master en cours. Je cherche à creuser là où code, produit et design se rencontrent.</p>
+          <p class="desc">Master en cours. Je pousse la technique — systèmes, architecture, projets à plusieurs — et je creuse là où le code rencontre le produit.</p>
         </div>
         <div class="dot" id="dot-epitech"></div>
       </div>
@@ -616,7 +551,7 @@
           <h4>Alternant <em>@ Spayr</em></h4>
           <div class="org">Spayr</div>
           <span class="type work">Expérience</span>
-          <p class="desc">Développement produit en startup. Plus d'autonomie, plus d'impact visible — et une attention particulière portée à la qualité d'usage.</p>
+          <p class="desc">Développement produit en startup. React, TypeScript, Node — plus d'autonomie, plus d'impact direct sur ce que les utilisateurs voient <em>vraiment</em>.</p>
         </div>
       </div>
     </div>
@@ -624,10 +559,11 @@
 </section>
 
 <section class="cta-section" id="contact">
-  <h3 class="reveal">Un projet à faire <em>lever le soleil</em> ?</h3>
-  <div class="reveal delay-1">
+  <div class="reveal cta-prompt">Envie d'en discuter&nbsp;?</div>
+  <h3 class="reveal delay-1">On <em>construit</em> quelque chose ensemble ?</h3>
+  <div class="reveal delay-2">
     <a class="cta-btn" href="mailto:benjaminboutrois04@gmail.com">
-      <span>Écrire</span>
+      <span>Prendre contact</span>
       <span>→</span>
     </a>
   </div>
@@ -766,6 +702,176 @@
     });
   }, { threshold: .2 });
   tio.observe(timeline);
+
+  // ============ Persistent terminal : content swaps per section ============
+  const term = document.getElementById('terminal');
+  const termBody = document.getElementById('terminal-body');
+  const termTitle = document.getElementById('terminal-title');
+
+  // Each state = { title, segments: [{cls, text}] }
+  // Segments are rendered as <span class="cls"> with preserved text.
+  const S = (cls, text) => ({ cls, text });
+  const NL = '\n';
+
+  const states = [
+    {
+      id: 'hero',
+      title: '~/benjamin — zsh',
+      segments: [
+        S('tl-prompt','$ '), S('tl-cmd','whoami'), S('','\n'),
+        S('tl-out','benjamin.boutrois\n'),
+        S('tl-prompt','$ '), S('tl-cmd','cat stack.json'), S('','\n'),
+        S('tl-out','{\n  "front": ["React", "TypeScript", "Vite"],\n  "back":  ["Node", "PostgreSQL", "REST"],\n  "tools": ["Git", "Docker", "Figma"]\n}\n'),
+        S('tl-prompt','$ '), S('tl-cmd','./ship.sh'), S('tl-cursor','▍'),
+      ]
+    },
+    {
+      id: 'chapter1',
+      title: '~/benjamin/skills — zsh',
+      segments: [
+        S('tl-prompt','$ '), S('tl-cmd','cat approche.md'), S('','\n'),
+        S('tl-out','# Du front au back.\n'),
+        S('tl-out','- Types partagés (TypeScript)\n'),
+        S('tl-out','- API REST claires, prévisibles\n'),
+        S('tl-out','- Interfaces accessibles, rapides\n'),
+        S('tl-out','- Tests là où ça compte vraiment\n'),
+        S('tl-prompt','$ '), S('tl-cursor','▍'),
+      ]
+    },
+    {
+      id: 'work',
+      title: '~/benjamin/projects — zsh',
+      segments: [
+        S('tl-prompt','$ '), S('tl-cmd','ls -la projects/'), S('','\n'),
+        S('tl-out','drwxr-xr-x  spayr/        (prod)\n'),
+        S('tl-out','drwxr-xr-x  cap-achat/    (alternance)\n'),
+        S('tl-out','drwxr-xr-x  school-app/   (Epitech)\n'),
+        S('tl-out','drwxr-xr-x  portfolio/    (perso)\n'),
+        S('tl-prompt','$ '), S('tl-cursor','▍'),
+      ]
+    },
+    {
+      id: 'journey',
+      title: '~/benjamin — git',
+      segments: [
+        S('tl-prompt','$ '), S('tl-cmd','git log --oneline'), S('','\n'),
+        S('tl-out','2025  Epitech · master (HEAD)\n'),
+        S('tl-out','2025  Spayr · alternance\n'),
+        S('tl-out','2024  Cap Achat · alternance\n'),
+        S('tl-out','2024  Bachelor dev web\n'),
+        S('tl-out','2021  Licence informatique\n'),
+        S('tl-prompt','$ '), S('tl-cursor','▍'),
+      ]
+    },
+  ];
+
+  // Append-based typing — content accumulates like a real terminal.
+  let currentState = -1;
+  const queue = [];
+  let typing = false;
+
+  function removeCursors(){
+    termBody.querySelectorAll('.tl-cursor').forEach(c => c.remove());
+  }
+
+  function scrollToBottom(){
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  function typeSegments(segments, done){
+    removeCursors();
+    let i = 0;      // segment index
+    let c = 0;      // char index within segment
+    const perChar = 18;
+    let currentNode = null;
+
+    function step(){
+      if (i >= segments.length){ scrollToBottom(); done(); return; }
+      const seg = segments[i];
+
+      if (seg.cls === 'tl-cursor'){
+        const span = document.createElement('span');
+        span.className = 'tl-cursor';
+        span.textContent = seg.text;
+        termBody.appendChild(span);
+        scrollToBottom();
+        i++; c = 0; currentNode = null;
+        step();
+        return;
+      }
+
+      if (c === 0){
+        currentNode = document.createElement('span');
+        if (seg.cls) currentNode.className = seg.cls;
+        termBody.appendChild(currentNode);
+      }
+      c++;
+      currentNode.textContent = seg.text.slice(0, c);
+      scrollToBottom();
+
+      if (c >= seg.text.length){
+        i++; c = 0; currentNode = null;
+        // slight pause after a full segment for breathing room
+        setTimeout(step, seg.cls === 'tl-cmd' ? 90 : perChar);
+      } else {
+        // prompt appears instantly; cmds & output type
+        const instant = (seg.cls === 'tl-prompt');
+        setTimeout(step, instant ? 0 : perChar);
+      }
+    }
+    step();
+  }
+
+  function runQueue(){
+    if (queue.length === 0){ typing = false; return; }
+    typing = true;
+    const idx = queue.shift();
+    termTitle.textContent = states[idx].title;
+    typeSegments(states[idx].segments, runQueue);
+  }
+
+  function appendState(idx){
+    if (idx === currentState) return;
+    currentState = idx;
+    queue.push(idx);
+    if (!typing) runQueue();
+  }
+
+  // Observe sections to drive state. Hide terminal on CTA.
+  const sectionMap = [
+    { sel: '.hero',       state: 0 },
+    { sel: '.chapter',    state: 1 },
+    { sel: '.gallery',    state: 2 },
+    { sel: '.journey',    state: 3 },
+  ];
+  const cta = document.querySelector('.cta-section');
+
+  // Use scroll position to pick the "current" section (last one whose top passed midpoint).
+  function pickState(){
+    const mid = window.scrollY + window.innerHeight * 0.45;
+    let picked = 0;
+    sectionMap.forEach(({sel, state}) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      const top = el.offsetTop;
+      if (mid >= top) picked = state;
+    });
+    // hide on CTA
+    if (cta){
+      const ctaTop = cta.offsetTop;
+      if (mid >= ctaTop - window.innerHeight * 0.2) {
+        term.classList.add('hidden');
+        return;
+      } else {
+        term.classList.remove('hidden');
+      }
+    }
+    appendState(picked);
+  }
+
+  window.addEventListener('scroll', pickState, { passive: true });
+  window.addEventListener('resize', pickState);
+  pickState();
 </script>
 </body>
 </html>
