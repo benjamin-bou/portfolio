@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>03 — Atelier & carnet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Gloock&family=DM+Sans:wght@300..600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#ff5b1f;
+    --orange-tape:rgba(255,91,31,.55);
+    --ink:#1f1a15;
+    --paper:#f7efe0;
+    --paper-dark:#e8dcc3;
+    --muted:#7a6f5e;
+    --pencil:#3a342c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:"DM Sans",sans-serif;font-weight:400;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    background-image:
+      radial-gradient(#d4c5a6 1px,transparent 1px),
+      radial-gradient(#d4c5a6 1px,transparent 1px);
+    background-size:28px 28px,28px 28px;
+    background-position:0 0,14px 14px;
+    background-attachment:fixed;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.1;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .wrap{max-width:1440px;margin:0 auto;padding:0 clamp(24px,5vw,80px)}
+
+  nav{display:flex;justify-content:space-between;align-items:center;padding:28px 0;position:relative;z-index:5}
+  .mark{font-family:"Gloock",serif;font-size:22px;letter-spacing:-.01em}
+  .mark b{color:var(--orange)}
+  .nav-links{display:flex;gap:8px;font-family:"Caveat",cursive;font-size:22px}
+  .nav-links a{color:var(--ink);text-decoration:none;padding:4px 14px;border-radius:999px;position:relative;transition:background .3s}
+  .nav-links a:hover{background:var(--orange);color:var(--paper);transform:rotate(-2deg)}
+  .nav-links a{display:inline-block;transition:transform .3s,background .3s,color .3s}
+
+  /* HERO */
+  .hero{padding:clamp(40px,8vh,100px) 0 clamp(60px,10vh,120px);position:relative}
+  .hello-sticker{
+    display:inline-block;background:var(--orange);color:var(--paper);
+    font-family:"Caveat",cursive;font-size:26px;padding:6px 18px;
+    transform:rotate(-3deg);margin-bottom:24px;
+    box-shadow:3px 3px 0 rgba(31,26,21,.12);
+  }
+  h1{
+    font-family:"Gloock",serif;font-weight:400;
+    font-size:clamp(56px,10vw,150px);line-height:.95;letter-spacing:-.03em;
+    max-width:13ch;margin-bottom:32px;position:relative;
+  }
+  h1 .hand{font-family:"Caveat",cursive;font-weight:700;color:var(--orange);font-size:.85em;display:inline-block;transform:rotate(-2deg);padding:0 4px}
+  h1 .scratch{position:relative;display:inline-block}
+  h1 .scratch::after{
+    content:"";position:absolute;left:-4px;right:-4px;top:50%;height:8px;
+    background:var(--orange);opacity:.7;transform:rotate(-1deg) skewX(-8deg);z-index:-1;
+    border-radius:40%;
+  }
+  .note{
+    position:absolute;font-family:"Caveat",cursive;color:var(--pencil);
+    font-size:20px;line-height:1.15;max-width:240px;
+  }
+  .note .arrow{display:block;font-size:28px;color:var(--orange);margin-top:6px}
+  .note-1{top:8%;right:4%;transform:rotate(5deg);text-align:center}
+  .note-2{bottom:18%;right:8%;transform:rotate(-4deg)}
+
+  .hero-foot{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;margin-top:40px;align-items:end}
+  @media (max-width:820px){.hero-foot{grid-template-columns:1fr}}
+  .lede{font-size:clamp(16px,1.3vw,19px);line-height:1.65;max-width:48ch;color:var(--ink)}
+  .lede b{background:linear-gradient(transparent 60%,rgba(255,91,31,.35) 60%);font-weight:500}
+
+  .card-me{
+    position:relative;background:var(--paper);padding:22px;
+    box-shadow:0 2px 0 var(--paper-dark),0 14px 28px rgba(31,26,21,.08);
+    transform:rotate(1.5deg);border:1px solid var(--paper-dark);
+    max-width:340px;justify-self:end;
+  }
+  .card-me .tape{position:absolute;top:-16px;left:50%;transform:translateX(-50%) rotate(-3deg);width:110px;height:28px;background:var(--orange-tape);box-shadow:0 4px 8px rgba(0,0,0,.08)}
+  .card-me .avatar{aspect-ratio:1;width:100%;background:linear-gradient(135deg,#ffd28a,#ff5b1f);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:"Gloock",serif;font-size:64px;color:var(--paper);margin-bottom:14px}
+  .card-me h4{font-family:"Gloock",serif;font-size:22px;margin-bottom:4px}
+  .card-me p{font-family:"Caveat",cursive;font-size:19px;color:var(--pencil)}
+
+  /* SKILLS — stickers */
+  .skills{padding:clamp(40px,8vh,80px) 0;position:relative}
+  .skills h2{font-family:"Gloock",serif;font-size:clamp(30px,4vw,52px);letter-spacing:-.02em;margin-bottom:32px}
+  .skills h2 .hand{font-family:"Caveat",cursive;color:var(--orange)}
+  .sticker-row{display:flex;flex-wrap:wrap;gap:14px;max-width:900px}
+  .sticker{
+    font-family:"Caveat",cursive;font-size:24px;padding:8px 20px;
+    background:var(--paper);border:1.5px solid var(--ink);border-radius:999px;
+    position:relative;transition:transform .3s,background .3s;cursor:default;
+    box-shadow:2px 3px 0 var(--ink);
+  }
+  .sticker:hover{transform:translate(-2px,-3px) rotate(-2deg);background:var(--orange);color:var(--paper);border-color:var(--ink);box-shadow:4px 5px 0 var(--ink)}
+  .sticker.is-orange{background:var(--orange);color:var(--paper)}
+  .sticker.rot-a{transform:rotate(-2deg)}
+  .sticker.rot-b{transform:rotate(1.5deg)}
+  .sticker.rot-c{transform:rotate(-1deg)}
+
+  /* PROJECTS — polaroids */
+  .projects{padding:clamp(60px,10vh,120px) 0;position:relative}
+  .projects-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px;flex-wrap:wrap;gap:16px}
+  .projects h2{font-family:"Gloock",serif;font-size:clamp(32px,5vw,72px);letter-spacing:-.025em;max-width:14ch;line-height:1}
+  .projects h2 em{font-family:"Caveat",cursive;color:var(--orange);font-style:normal;font-size:1.15em;display:inline-block;transform:rotate(-2deg)}
+  .projects-head .count{font-family:"Caveat",cursive;font-size:24px;color:var(--pencil);transform:rotate(-1deg)}
+
+  .polaroid-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px 30px}
+  @media (max-width:900px){.polaroid-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:600px){.polaroid-grid{grid-template-columns:1fr}}
+
+  .polaroid{
+    background:var(--paper);padding:14px 14px 50px;
+    box-shadow:0 2px 0 var(--paper-dark),0 18px 40px rgba(31,26,21,.08);
+    position:relative;cursor:pointer;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s;
+    border:1px solid var(--paper-dark);
+  }
+  .polaroid:hover{transform:translateY(-8px) rotate(0deg) scale(1.02);box-shadow:0 2px 0 var(--paper-dark),0 30px 60px rgba(31,26,21,.18);z-index:2}
+  .polaroid:nth-child(1){transform:rotate(-2.5deg)}
+  .polaroid:nth-child(2){transform:rotate(1.5deg);margin-top:30px}
+  .polaroid:nth-child(3){transform:rotate(-1deg)}
+  .polaroid:nth-child(4){transform:rotate(2deg);margin-top:20px}
+  .polaroid:nth-child(5){transform:rotate(-1.5deg)}
+  .polaroid:nth-child(6){transform:rotate(1deg);margin-top:40px}
+  .polaroid .tape{position:absolute;top:-14px;left:50%;transform:translateX(-50%) rotate(-4deg);width:90px;height:22px;background:var(--orange-tape);box-shadow:0 3px 6px rgba(0,0,0,.08);z-index:3}
+  .polaroid .img{aspect-ratio:1;border-radius:1px;margin-bottom:14px;position:relative;overflow:hidden}
+  .polaroid .img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.1))}
+  .p-img-1{background:linear-gradient(135deg,#ff8a3d,#ff5b1f 60%,#a02810)}
+  .p-img-2{background:linear-gradient(135deg,#ffd28a,#ff9a4a 50%,#c04a14)}
+  .p-img-3{background:linear-gradient(135deg,#ffc080,#ff6a1f 55%,#7a1a08);}
+  .p-img-4{background:radial-gradient(circle at 30% 30%,#ffe0b0,#ff7a2a 60%,#2a1008)}
+  .p-img-5{background:linear-gradient(160deg,#f3e8d8,#ffb057 50%,#ff5b1f)}
+  .p-img-6{background:linear-gradient(135deg,#ff9a4a,#c04a14 60%,#2a0e08)}
+  .polaroid h3{font-family:"Gloock",serif;font-size:22px;line-height:1.15;margin-bottom:4px}
+  .polaroid .caption{font-family:"Caveat",cursive;font-size:19px;color:var(--pencil);line-height:1.1}
+
+  /* NOTE inline */
+  .postit{
+    position:absolute;background:#fff6a8;padding:18px;width:220px;
+    font-family:"Caveat",cursive;font-size:20px;line-height:1.2;color:var(--pencil);
+    box-shadow:2px 8px 18px rgba(31,26,21,.12);transform:rotate(4deg);z-index:4;
+    right:-10px;top:-30px;
+  }
+  @media (max-width:820px){.postit{display:none}}
+
+  /* CONTACT */
+  .contact{padding:clamp(80px,14vh,180px) 0 clamp(40px,8vh,80px);text-align:center;position:relative}
+  .contact h2{font-family:"Gloock",serif;font-size:clamp(44px,7vw,110px);line-height:.95;letter-spacing:-.025em;max-width:14ch;margin:0 auto 32px}
+  .contact h2 .hand{font-family:"Caveat",cursive;color:var(--orange);font-size:1.1em;display:inline-block;transform:rotate(-2deg)}
+  .envelope{
+    display:inline-flex;align-items:center;gap:14px;padding:20px 36px;
+    background:var(--orange);color:var(--paper);text-decoration:none;
+    font-family:"Gloock",serif;font-size:22px;border-radius:999px;
+    box-shadow:4px 5px 0 var(--ink);transition:transform .3s,box-shadow .3s;
+  }
+  .envelope:hover{transform:translate(-2px,-3px);box-shadow:6px 8px 0 var(--ink)}
+  .envelope .arrow{transition:transform .3s}
+  .envelope:hover .arrow{transform:translateX(6px)}
+  .signature{font-family:"Caveat",cursive;font-size:34px;color:var(--orange);margin-top:48px;transform:rotate(-3deg);display:inline-block}
+
+  footer{padding:40px 0;border-top:2px dashed var(--paper-dark);margin-top:40px;display:flex;justify-content:space-between;font-family:"Caveat",cursive;font-size:20px;color:var(--muted);flex-wrap:wrap;gap:12px}
+
+  .back{position:fixed;top:24px;left:24px;z-index:200;font-family:"Caveat",cursive;font-size:20px;color:var(--ink);text-decoration:none;background:var(--paper);padding:8px 16px;border:1.5px solid var(--ink);border-radius:999px;box-shadow:2px 3px 0 var(--ink);transform:rotate(-2deg)}
+  .back:hover{background:var(--orange);color:var(--paper)}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← retour</a>
+
+<div class="wrap">
+  <nav>
+    <div class="mark">Benjamin&nbsp;Boutrois<b>.</b></div>
+    <div class="nav-links">
+      <a href="#skills">compétences</a>
+      <a href="#projects">projets</a>
+      <a href="#contact">écrire</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hello-sticker">Salut, moi c'est Ben ✶</div>
+    <h1>
+      Je fabrique des <span class="scratch">interfaces</span><br/>
+      avec <span class="hand">beaucoup</span> d'attention<br/>
+      et un peu de <span class="hand">joie</span>.
+    </h1>
+
+    <div class="note note-1">
+      un portfolio, c'est comme un<br/>
+      <em>carnet de croquis</em> — on<br/>
+      laisse voir la matière.
+      <span class="arrow">↙</span>
+    </div>
+
+    <div class="hero-foot">
+      <p class="lede">
+        Développeur d'interfaces basé à Paris. Je <b>code</b>, je <b>dessine</b>, je prends des <b>notes</b> — et j'essaie de garder un peu de tout ça dans chaque projet. Ce site est mon atelier : entre, regarde, tire une chaise.
+      </p>
+      <div class="card-me">
+        <div class="tape"></div>
+        <div class="avatar">BB</div>
+        <h4>Benjamin Boutrois</h4>
+        <p>développeur curieux ·<br/>designer appliqué</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="skills" id="skills">
+    <h2>Ce que <span class="hand">j'aime</span> faire —</h2>
+    <div class="sticker-row">
+      <span class="sticker rot-a">React &amp; TypeScript</span>
+      <span class="sticker is-orange rot-b">interfaces sur mesure</span>
+      <span class="sticker rot-c">design systems</span>
+      <span class="sticker rot-b">animation &amp; motion</span>
+      <span class="sticker rot-a">direction artistique</span>
+      <span class="sticker is-orange rot-c">accessibilité</span>
+      <span class="sticker rot-b">prototypage rapide</span>
+      <span class="sticker rot-a">collaboration studio</span>
+    </div>
+  </section>
+
+  <section class="projects" id="projects">
+    <div class="projects-head">
+      <h2>Mon <em>carnet</em> de projets</h2>
+      <div class="count">six pages récentes · clique pour ouvrir</div>
+    </div>
+
+    <div class="polaroid-grid">
+      <article class="polaroid">
+        <div class="tape"></div>
+        <div class="img p-img-1"></div>
+        <h3>Maison d'édition</h3>
+        <div class="caption">une bibliothèque qui respire</div>
+      </article>
+      <article class="polaroid">
+        <div class="tape"></div>
+        <div class="img p-img-2"></div>
+        <h3>Coopérative</h3>
+        <div class="caption">des données qui parlent terrain</div>
+        <div class="postit">mon projet préféré de 2025 ✶</div>
+      </article>
+      <article class="polaroid">
+        <div class="tape"></div>
+        <div class="img p-img-3"></div>
+        <h3>Studio céramique</h3>
+        <div class="caption">matière, lumière, lenteur</div>
+      </article>
+      <article class="polaroid">
+        <div class="tape"></div>
+        <div class="img p-img-4"></div>
+        <h3>Outil interne</h3>
+        <div class="caption">8h/jour, sans friction</div>
+      </article>
+      <article class="polaroid">
+        <div class="tape"></div>
+        <div class="img p-img-5"></div>
+        <h3>Podcast indé</h3>
+        <div class="caption">un lecteur qu'on adopte</div>
+      </article>
+      <article class="polaroid">
+        <div class="tape"></div>
+        <div class="img p-img-6"></div>
+        <h3>App lecture</h3>
+        <div class="caption">prendre le temps de lire</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <h2>Tu as une <span class="hand">idée</span> ?<br/>Posons-la sur la table.</h2>
+    <a class="envelope" href="mailto:benjaminboutrois04@gmail.com">
+      <span>✉</span>
+      <span>benjaminboutrois04@gmail.com</span>
+      <span class="arrow">→</span>
+    </a>
+    <div class="signature">— à bientôt, Ben</div>
+  </section>
+
+  <footer>
+    <div>fait main · 2026</div>
+    <div>LinkedIn · GitHub · Read.cv</div>
+  </footer>
+</div>
+</body>
+</html>
