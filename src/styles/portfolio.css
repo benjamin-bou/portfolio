@@ -94,7 +94,7 @@ body:hover .glow-cursor { opacity: 1; }
     linear-gradient(90deg, rgba(10,6,4,.5), transparent 30%, transparent 70%, rgba(10,6,4,.5));
 }
 .hero-sun {
-  position: absolute; left: 50%; bottom: -8%;
+  position: absolute; left: 50%; bottom: -26vw;
   width: 52vw; height: 52vw;
   background: radial-gradient(circle, var(--orange-glow) 0%, #ffa04a 30%, rgba(255,160,74,0) 70%);
   transform: translateX(-50%);
@@ -107,7 +107,9 @@ body:hover .glow-cursor { opacity: 1; }
   50% { transform: translate(-50%, -2%) scale(1.03); opacity: 1; }
 }
 .hero-horizon {
-  position: absolute; left: 0; right: 0; bottom: 20%; height: 1px;
+  position: absolute; left: 0; right: 0;
+  bottom: clamp(110px, 13vh, 150px);
+  height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,200,140,.6), transparent);
 }
 .hero-ridge {

@@ -5,12 +5,12 @@ const WORDS = [
   { text: "J'aime", em: false },
   { text: 'apprendre', em: true },
   { text: 'et', em: false },
-  { text: 'construire', em: true },
-  { text: 'des', em: false },
-  { text: 'produits', em: false },
-  { text: 'web', em: false },
-  { text: 'qui', em: false },
-  { text: 'servent.', em: false },
+  { text: 'découvrir', em: false },
+  { text: 'en', em: false },
+  { text: 'construisant', em: true },
+  { text: 'mes', em: false },
+  { text: 'propres', em: false },
+  { text: 'outils.', em: false },
 ];
 
 export default function Hero() {
@@ -44,49 +44,14 @@ export default function Hero() {
     return () => io.disconnect();
   }, []);
 
-  // Scramble effect on em hover
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>('.hero-h1 em');
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const cleanups: (() => void)[] = [];
-    els.forEach((el) => {
-      const original = el.textContent || '';
-      let running = false;
-      const onEnter = () => {
-        if (running) return;
-        running = true;
-        let frame = 0;
-        const id = setInterval(() => {
-          frame++;
-          el.textContent = original
-            .split('')
-            .map((c, i) => {
-              if (frame > i + 4) return original[i];
-              if (c === ' ') return ' ';
-              return chars[Math.floor(Math.random() * chars.length)];
-            })
-            .join('');
-          if (frame > original.length + 4) {
-            clearInterval(id);
-            el.textContent = original;
-            running = false;
-          }
-        }, 40);
-      };
-      el.addEventListener('mouseenter', onEnter);
-      cleanups.push(() => el.removeEventListener('mouseenter', onEnter));
-    });
-    return () => cleanups.forEach((c) => c());
-  }, []);
-
   return (
     <section
       id="hero"
-      className="hero relative overflow-hidden flex items-end max-md:items-start"
+      className="hero relative overflow-hidden flex items-center max-md:items-start"
       style={{
         minHeight: '100svh',
         padding:
-          'clamp(90px, 14vh, 130px) clamp(24px, 5vw, 80px) clamp(60px, 10vh, 120px)',
+          'clamp(110px, 16vh, 150px) clamp(24px, 5vw, 80px) clamp(160px, 22vh, 240px)',
       }}
     >
       <div id="hero-sky" className="hero-sky" />
@@ -105,14 +70,16 @@ export default function Hero() {
 
         <h1 className="hero-h1">
           {WORDS.map((w, i) => (
-            <span key={i} className={`word w${i + 1}`}>
-              {w.em ? <em>{w.text}</em> : w.text}
+            <span key={i}>
+              <span className={`word w${i + 1}`}>
+                {w.em ? <em>{w.text}</em> : w.text}
+              </span>
               {i < WORDS.length - 1 ? ' ' : ''}
             </span>
           ))}
         </h1>
 
-        <div className="fade-up-delayed flex justify-between items-end mt-15 gap-10 flex-wrap">
+        <div className="fade-up-delayed mt-15">
           <p className="max-w-[46ch] text-sm leading-[1.7] text-cream/80">
             Étudiant à Epitech, alternant chez{' '}
             <strong className="text-orange-hot font-medium">Spayr</strong>. J'aime
@@ -120,17 +87,20 @@ export default function Hero() {
             mise en ligne. Je m'intéresse et m'adapte aux nouvelles technologies qui
             dessinent le développement de demain.
           </p>
-          <div className="scroll-hint flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-cream/60">
-            Scroll · la suite
-          </div>
         </div>
+      </div>
 
-        <div className="fade-up-stats flex gap-10 flex-wrap mt-10">
-          <Stat n="5" count setRef={(el) => (counterRefs.current[0] = el)} label="années de code" />
-          <Stat n="12" count setRef={(el) => (counterRefs.current[1] = el)} label="projets livrés" />
-          <Stat n="2" count setRef={(el) => (counterRefs.current[2] = el)} label="alternances" />
-          <Stat n="∞" label="envie d'apprendre" />
-        </div>
+      <div
+        className="fade-up-stats absolute z-[2] flex gap-10 flex-wrap"
+        style={{
+          left: 'clamp(24px, 5vw, 80px)',
+          right: 'clamp(24px, 5vw, 80px)',
+          bottom: 'clamp(24px, 4vh, 56px)',
+        }}
+      >
+        <Stat n="5" count setRef={(el) => (counterRefs.current[0] = el)} label="années d'études" />
+        <Stat n="2" count setRef={(el) => (counterRefs.current[1] = el)} label="années d'expérience" />
+        <Stat n="3" count setRef={(el) => (counterRefs.current[2] = el)} label="projets livrés" />
       </div>
     </section>
   );
