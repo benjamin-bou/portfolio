@@ -1,28 +1,65 @@
-import Header from './components/Header'
-import HeroSection from './components/HeroSection'
-import './App.css'
+import Nav from './components/Nav';
+import Hero from './components/Hero';
+import Terminal from './components/Terminal';
+import EmbersCanvas from './components/EmbersCanvas';
+import ChapterI from './components/ChapterI';
+import Parallax from './components/Parallax';
+import Marquee from './components/Marquee';
+import Gallery from './components/Gallery';
+import Process from './components/Process';
+import Journey from './components/Journey';
+import CTA from './components/CTA';
+import Footer from './components/Footer';
+import { useReveal } from './hooks/useReveal';
+import { useScrollEffects } from './hooks/useScrollEffects';
+import { useGlowCursor } from './hooks/useGlowCursor';
+import { useParallax } from './hooks/useParallax';
 
 function App() {
+  useReveal();
+  useScrollEffects();
+  useGlowCursor();
+  useParallax();
+
   return (
     <>
-      <Header />
+      <div id="progress-bar" className="progress-bar" />
+      <div id="glow-cursor" className="glow-cursor" />
+      <div className="vignette" />
+      <EmbersCanvas />
+
+      <Nav />
+      <Terminal />
+
       <main>
-        <div id="hero">
-          <HeroSection />
-        </div>
-        {/* Sections à venir */}
-        <div id="about" className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
-          <h2 className="text-4xl font-bold text-slate-800 dark:text-slate-100">À propos (à venir)</h2>
-        </div>
-        <div id="projects" className="min-h-screen bg-white dark:bg-corporate-dark flex items-center justify-center">
-          <h2 className="text-4xl font-bold text-slate-800 dark:text-slate-100">Projets (à venir)</h2>
-        </div>
-        <div id="contact" className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
-          <h2 className="text-4xl font-bold text-slate-800 dark:text-slate-100">Contact (à venir)</h2>
-        </div>
+        <Hero />
+        <ChapterI />
+        <Parallax variant="mountain" kicker="Philosophie">
+          Avancer pas à pas,<br />dans une <em className="italic" style={{
+            background: 'linear-gradient(180deg, var(--orange-glow), var(--orange))',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}>direction claire</em>.
+        </Parallax>
+        <Marquee />
+        <Gallery />
+        <Process />
+        <Journey />
+        <Parallax variant="desk" kicker="Au quotidien">
+          Du code, des <em className="italic" style={{
+            background: 'linear-gradient(180deg, var(--orange-glow), var(--orange))',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}>tests</em>, des cafés. Et des livraisons.
+        </Parallax>
+        <CTA />
       </main>
+
+      <Footer />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

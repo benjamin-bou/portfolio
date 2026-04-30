@@ -1,82 +1,28 @@
 @import "tailwindcss";
+@import "./styles/portfolio.css";
 
 @theme {
-  --color-warm-light: #FFF8F0;
-  --color-warm-orange: #F97316;
-  --color-warm-orange-dark: #EA580C;
-  --color-warm-orange-light: #FB923C;
-  --color-corporate-dark: #263857;
+  --color-deep: #0a0604;
+  --color-ember: #1a0a06;
+  --color-cream: #f3e8d8;
+  --color-orange: #ff6a1f;
+  --color-orange-hot: #ffb057;
+  --color-orange-glow: #ffd28a;
+  --color-muted: #8a7c70;
 
-  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-
-  --animate-fade-in-up: fadeInUp 0.8s ease-out forwards;
-  --animate-fade-in-up-scale: fadeInUpScale 0.6s ease-out forwards;
-  --animate-expand-width: expandWidth 0.8s ease-out forwards;
-  --animate-float: float 8s ease-in-out infinite;
-  --animate-bounce-arrow: bounceArrow 2s infinite;
-  --animate-grid-move: gridMove 20s linear infinite;
+  --font-serif: "Instrument Serif", serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+html {
+  scroll-behavior: smooth;
 }
 
-@keyframes fadeInUpScale {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes expandWidth {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  33% {
-    transform: translate(30px, -30px);
-  }
-  66% {
-    transform: translate(-20px, 20px);
-  }
-}
-
-@keyframes bounceArrow {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(8px);
-  }
-  60% {
-    transform: translateY(4px);
-  }
-}
-
-@keyframes gridMove {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(50px, 50px);
-  }
+body {
+  background: var(--color-deep);
+  color: var(--color-cream);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }

@@ -37,8 +37,16 @@
   /* progress bar */
   .progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--orange),var(--orange-glow));z-index:200;width:0;transition:width .1s linear;box-shadow:0 0 12px var(--orange)}
 
+  .top-bar{
+    position:fixed;top:0;left:0;right:0;z-index:60;
+    text-align:center;padding:7px 16px;
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+    color:rgba(243,232,216,.7);background:rgba(10,6,4,.72);backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(243,232,216,.08);
+  }
+
   nav{
-    position:fixed;top:0;left:0;right:0;z-index:50;
+    position:fixed;top:30px;left:0;right:0;z-index:50;
     display:flex;justify-content:space-between;align-items:center;
     padding:22px clamp(24px,4vw,48px);
     font-size:11px;letter-spacing:.2em;text-transform:uppercase;
@@ -93,14 +101,22 @@
   @keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
 
   .hero-content{position:relative;z-index:2;max-width:1400px;margin:0 auto;width:100%}
+  /* keep headline clear of the fixed terminal on wider screens */
+  @media (min-width:900px){
+    .hero-content{padding-right:min(480px,38vw)}
+  }
   .eyebrow{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--orange-hot);margin-bottom:28px;display:flex;align-items:center;gap:14px;opacity:0;animation:fadeUp 1s .2s forwards}
   .eyebrow::before{content:"";width:0;height:1px;background:var(--orange-hot);animation:rule-grow 1s .4s forwards}
   @keyframes rule-grow{to{width:40px}}
   h1{
     font-family:"Instrument Serif",serif;font-weight:400;
-    font-size:clamp(56px,11vw,180px);line-height:.9;letter-spacing:-.02em;
-    color:#fff;max-width:14ch;
+    font-size:clamp(42px,7.5vw,120px);line-height:.95;letter-spacing:-.02em;
+    color:#fff;max-width:18ch;
+    overflow-wrap:break-word;hyphens:auto;
+    padding-right:.25em;
   }
+  /* italic glyphs extend past the box — add breathing room so they don't clip */
+  h1 em{padding-right:.08em}
   h1 .word{display:inline-block;opacity:0;transform:translateY(40px);animation:wordIn 1.1s cubic-bezier(.2,.8,.2,1) forwards}
   h1 .word.w1{animation-delay:.4s}
   h1 .word.w2{animation-delay:.55s}
@@ -110,6 +126,7 @@
   h1 .word.w6{animation-delay:1.15s}
   h1 .word.w7{animation-delay:1.3s}
   h1 .word.w8{animation-delay:1.45s}
+  h1 .word.w9{animation-delay:1.6s}
   @keyframes wordIn{to{opacity:1;transform:translateY(0)}}
   h1 em{font-style:italic;background:linear-gradient(180deg,var(--orange-glow),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent;position:relative}
 
@@ -330,6 +347,8 @@
 <div class="vignette"></div>
 <a class="back" href="index.html">← Explorations</a>
 
+<div class="top-bar">Epitech · Rennes · Paris</div>
+
 <!-- Persistent terminal — content swaps with scroll -->
 <div class="terminal" id="terminal" aria-hidden="true">
   <div class="terminal-bar"><span></span><span></span><span></span><div class="terminal-title" id="terminal-title">~/benjamin — zsh</div></div>
@@ -353,20 +372,20 @@
   <div class="ridge"></div>
 
   <div class="hero-content">
-    <div class="eyebrow">Développeur full-stack · Epitech · Paris</div>
     <h1>
-      <span class="word w1">Je</span>
-      <span class="word w2">conçois</span>
-      <span class="word w3">des</span>
-      <span class="word w4"><em>produits</em></span>
-      <span class="word w5">web,</span>
-      <span class="word w6">de</span>
-      <span class="word w7">l'<em>interface</em></span>
-      <span class="word w8">au serveur.</span>
+      <span class="word w1">J'aime</span>
+      <span class="word w2"><em>apprendre</em></span>
+      <span class="word w3">et</span>
+      <span class="word w4"><em>construire</em></span>
+      <span class="word w5">des</span>
+      <span class="word w6">produits</span>
+      <span class="word w7">web</span>
+      <span class="word w8">qui</span>
+      <span class="word w9">servent.</span>
     </h1>
 
     <div class="hero-foot">
-      <p>Étudiant à Epitech, alternant chez <strong style="color:var(--orange-hot);font-weight:500">Spayr</strong>. Je code des applications web au quotidien — React, TypeScript, Node — avec l'envie que ce soit propre, clair, et plutôt agréable à utiliser.</p>
+      <p>Étudiant à Epitech, alternant chez <strong style="color:var(--orange-hot);font-weight:500">Spayr</strong>. J'aime construire des <em>produits complets</em>, de l'idée à la mise en ligne. Je m'intéresse et m'adapte aux nouvelles technologies qui dessinent le développement de demain.</p>
       <div class="scroll-hint">Scroll · la suite</div>
     </div>
   </div>
@@ -720,21 +739,19 @@
       segments: [
         S('tl-prompt','$ '), S('tl-cmd','whoami'), S('','\n'),
         S('tl-out','benjamin.boutrois\n'),
-        S('tl-prompt','$ '), S('tl-cmd','cat stack.json'), S('','\n'),
-        S('tl-out','{\n  "front": ["React", "TypeScript", "Vite"],\n  "back":  ["Node", "PostgreSQL", "REST"],\n  "tools": ["Git", "Docker", "Figma"]\n}\n'),
-        S('tl-prompt','$ '), S('tl-cmd','./ship.sh'), S('tl-cursor','▍'),
+        S('tl-prompt','$ '), S('tl-cmd','cat bio.txt'), S('','\n'),
+        S('tl-out','Développeur full-stack\n'),
+        S('tl-out','École : Epitech Rennes · promo 2027\n'),
+        S('tl-out','Alternance : Spayr · Paris\n'),
+        S('tl-prompt','$ '), S('tl-cursor','▍'),
       ]
     },
     {
       id: 'chapter1',
       title: '~/benjamin/skills — zsh',
       segments: [
-        S('tl-prompt','$ '), S('tl-cmd','cat approche.md'), S('','\n'),
-        S('tl-out','# Du front au back.\n'),
-        S('tl-out','- Types partagés (TypeScript)\n'),
-        S('tl-out','- API REST claires, prévisibles\n'),
-        S('tl-out','- Interfaces accessibles, rapides\n'),
-        S('tl-out','- Tests là où ça compte vraiment\n'),
+        S('tl-prompt','$ '), S('tl-cmd','cat stack.json'), S('','\n'),
+        S('tl-out','{\n  "front": ["React", "TypeScript", "Vite"],\n  "back":  ["Node", "PostgreSQL", "REST"],\n  "tools": ["Git", "Docker", "Figma"]\n}\n'),
         S('tl-prompt','$ '), S('tl-cursor','▍'),
       ]
     },
