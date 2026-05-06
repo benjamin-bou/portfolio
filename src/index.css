@@ -26,3 +26,43 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
+
+/* Journey3D narration sidebar — active step highlighted, others dimmed */
+.narration-sidebar .narration-step {
+  opacity: 0.32;
+  filter: blur(0.4px);
+}
+.narration-sidebar .step-bullet {
+  background: rgba(243, 232, 216, 0.4);
+  transform: scale(0.7);
+}
+.narration-sidebar .step-tag {
+  color: rgba(243, 232, 216, 0.55);
+}
+.narration-sidebar .step-body {
+  color: rgba(243, 232, 216, 0.55);
+}
+
+.narration-sidebar[data-active="1"] [data-step="1"],
+.narration-sidebar[data-active="2"] [data-step="2"],
+.narration-sidebar[data-active="3"] [data-step="3"] {
+  opacity: 1;
+  filter: none;
+}
+.narration-sidebar[data-active="1"] [data-step="1"] .step-bullet,
+.narration-sidebar[data-active="2"] [data-step="2"] .step-bullet,
+.narration-sidebar[data-active="3"] [data-step="3"] .step-bullet {
+  background: var(--color-orange);
+  transform: scale(1);
+  box-shadow: 0 0 12px var(--color-orange-hot), 0 0 4px var(--color-orange);
+}
+.narration-sidebar[data-active="1"] [data-step="1"] .step-tag,
+.narration-sidebar[data-active="2"] [data-step="2"] .step-tag,
+.narration-sidebar[data-active="3"] [data-step="3"] .step-tag {
+  color: var(--color-orange-hot);
+}
+.narration-sidebar[data-active="1"] [data-step="1"] .step-body,
+.narration-sidebar[data-active="2"] [data-step="2"] .step-body,
+.narration-sidebar[data-active="3"] [data-step="3"] .step-body {
+  color: #ffffff;
+}

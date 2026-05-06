@@ -49,8 +49,8 @@ const STOPS: Stop[] = [
     id: 'licence',
     pos: [-3, 6], // déjà partway up — la licence est une vraie étape d'ascension
     year: '2021 — 2024',
-    title: 'Licence Informatique',
-    org: 'Université',
+    title: 'Université',
+    org: 'Licence Informatique',
     type: 'edu',
     typeLabel: 'Formation · fondations',
     desc: "Algorithmique, structures de données, systèmes. Les fondations sur lesquelles je m'appuie encore.",
@@ -60,8 +60,8 @@ const STOPS: Stop[] = [
     id: 'bachelor',
     pos: [-22, 20], // Les Houches – Prarion (~1850m), à mi-chemin Chamonix → Tramway
     year: '2024 — 2025',
-    title: 'Bachelor Développeur Web',
-    org: 'My-digital-school',
+    title: 'My-digital-school',
+    org: 'Bachelor Développeur Web',
     type: 'edu',
     typeLabel: 'Formation',
     desc: "Spécialisation full-stack. L'année où j'ai commencé à me sentir développeur.",
@@ -71,8 +71,8 @@ const STOPS: Stop[] = [
     id: 'cap',
     pos: [4, 14], // Plan de l'Aiguille (Téléphérique du Midi mid, 2317m, 48% summit)
     year: '2024 — 2025',
-    title: 'Alternant développeur web',
-    org: 'Cap Achat',
+    title: 'Cap Achat',
+    org: 'Alternant développeur web',
     type: 'work',
     typeLabel: 'Expérience',
     desc: 'Première alternance. Le vrai rythme du métier — lire, faire évoluer, livrer.',
@@ -82,8 +82,8 @@ const STOPS: Stop[] = [
     id: 'epitech',
     pos: [-30, 42], // Crête / Nid d'Aigle (~2372m), au-dessus de Prarion
     year: '2025 — 2027',
-    title: 'Master MSc Pro',
-    org: 'Epitech',
+    title: 'Epitech',
+    org: 'Master MSc Pro',
     type: 'edu',
     typeLabel: 'Formation',
     desc: 'Master en cours. Systèmes, architecture, projets à plusieurs.',
@@ -94,8 +94,8 @@ const STOPS: Stop[] = [
     id: 'spayr',
     pos: [-11, 42], // Refuge des Grands Mulets (3051m, 63% summit) — sur la voie du Goûter
     year: '2025 — 2027',
-    title: 'Alternance full-stack',
-    org: 'Spayr',
+    title: 'Spayr',
+    org: 'Alternant full-stack',
     type: 'work',
     typeLabel: 'Expérience',
     desc: "Développement produit en startup. Plus d'autonomie, plus d'impact direct.",
@@ -186,9 +186,7 @@ function Journey3DScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const introOverlayRef = useRef<HTMLDivElement | null>(null);
   const outroOverlayRef = useRef<HTMLDivElement | null>(null);
-  const narrationRef1 = useRef<HTMLDivElement | null>(null);
-  const narrationRef2 = useRef<HTMLDivElement | null>(null);
-  const narrationRef3 = useRef<HTMLDivElement | null>(null);
+  const narrationContainerRef = useRef<HTMLDivElement | null>(null);
   const labelsRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -335,21 +333,18 @@ function Journey3DScene() {
         outroOverlayRef.current.style.pointerEvents = outroOpacity > 0.05 ? 'auto' : 'none';
       }
 
-      // Narration progressive (3 paliers explicatifs pendant le scroll)
-      // bloc 1 : 0.24 → 0.42 (approche valley + LICENCE)
-      // bloc 2 : 0.42 → 0.62 (fork + BACHELOR/CAP)
-      // bloc 3 : 0.62 → 0.80 (EPITECH/SPAYR + sommet inatteint)
-      const fadeBlock = (start: number, end: number) => {
-        if (sp < start) return smoothstep(start - 0.05, start, sp);
-        if (sp > end) return 1 - smoothstep(end, end + 0.05, sp);
-        return 1;
-      };
-      const n1 = fadeBlock(0.24, 0.42);
-      const n2 = fadeBlock(0.44, 0.62);
-      const n3 = fadeBlock(0.64, 0.80);
-      if (narrationRef1.current) narrationRef1.current.style.opacity = String(n1);
-      if (narrationRef2.current) narrationRef2.current.style.opacity = String(n2);
-      if (narrationRef3.current) narrationRef3.current.style.opacity = String(n3);
+      // Sidebar narrative (3 paliers persistants à droite)
+      // - container fade in 0.16 → 0.24, fade out 0.78 → 0.86
+      // - phase active déterminée par seuils 0.45 / 0.65
+      if (narrationContainerRef.current) {
+        const narrOp = Math.min(
+          smoothstep(0.16, 0.24, sp),
+          1 - smoothstep(0.78, 0.86, sp),
+        );
+        narrationContainerRef.current.style.opacity = String(narrOp);
+        const active = sp < 0.45 ? '1' : sp < 0.65 ? '2' : '3';
+        narrationContainerRef.current.dataset.active = active;
+      }
     }
 
     function init(heights: Float32Array, satTex: THREE.Texture) {
@@ -840,84 +835,107 @@ function Journey3DScene() {
           style={{ background: '#180a06' }}
         />
 
-        {/* Narration progressive — explique la métaphore parcours/ascension */}
+        {/* Sidebar narrative — 3 paliers persistants, l'actif est mis en avant */}
         <div
-          ref={narrationRef1}
-          className="absolute z-[5] pointer-events-none"
+          ref={narrationContainerRef}
+          data-active="1"
+          className="narration-sidebar absolute z-[5] pointer-events-none"
           style={{
             opacity: 0,
             top: '50%',
             right: 'clamp(24px, 6vw, 110px)',
             transform: 'translateY(-50%)',
-            maxWidth: '320px',
+            width: 'clamp(280px, 26vw, 360px)',
             transition: 'opacity 0.2s linear',
             willChange: 'opacity',
           }}
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange/80 mb-3">
-            01 · Le départ
+          <div className="flex flex-col gap-6">
+            {[
+              {
+                idx: '1',
+                num: '01',
+                tag: 'Le départ',
+                body: (
+                  <>
+                    La vallée est le point de départ — les bases, la curiosité.
+                    Très vite, la{' '}
+                    <em className="italic text-orange-hot">licence</em> me place
+                    déjà sur le flanc de la montagne : un premier vrai palier.
+                  </>
+                ),
+              },
+              {
+                idx: '2',
+                num: '02',
+                tag: 'Deux voies',
+                body: (
+                  <>
+                    Le chemin se sépare. À gauche, l'
+                    <em className="italic text-orange-hot">alternance</em> :
+                    appliquer mes connaissances, travailler en équipe, déployer
+                    en production. À droite, l'
+                    <em className="italic text-orange-hot">école</em> :
+                    structurer, approfondir. Deux voies parallèles, qui
+                    montent ensemble.
+                  </>
+                ),
+              },
+              {
+                idx: '3',
+                num: '03',
+                tag: 'Pas encore au sommet',
+                body: (
+                  <>
+                    Master en cours, alternance en cours. La fin de mon
+                    parcours scolaire, le{' '}
+                    <em className="italic text-orange-hot">début</em> de mon
+                    parcours pro.
+                  </>
+                ),
+              },
+            ].map((item) => (
+              <div
+                key={item.idx}
+                data-step={item.idx}
+                className="narration-step flex gap-3 items-start"
+                style={{ transition: 'opacity 0.4s ease, filter 0.4s ease' }}
+              >
+                <div className="flex flex-col items-center pt-1 shrink-0">
+                  <span
+                    className="step-bullet rounded-full"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      transition:
+                        'background 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease',
+                    }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <div
+                    className="step-tag font-mono uppercase tracking-[0.3em] mb-1.5"
+                    style={{
+                      fontSize: '10px',
+                      transition: 'color 0.4s ease',
+                    }}
+                  >
+                    {item.num} · {item.tag}
+                  </div>
+                  <p
+                    className="step-body font-serif"
+                    style={{
+                      fontSize: '15.5px',
+                      lineHeight: 1.5,
+                      transition: 'color 0.4s ease, font-size 0.4s ease',
+                    }}
+                  >
+                    {item.body}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-          <p
-            className="font-serif text-white"
-            style={{ fontSize: '17px', lineHeight: 1.5 }}
-          >
-            Chamonix. La vallée est le point de départ — les bases, la curiosité.
-            Très vite, la <em className="italic text-orange-hot">licence</em> me
-            place déjà sur le flanc de la montagne : un premier vrai palier.
-          </p>
-        </div>
-
-        <div
-          ref={narrationRef2}
-          className="absolute z-[5] pointer-events-none"
-          style={{
-            opacity: 0,
-            top: '50%',
-            right: 'clamp(24px, 6vw, 110px)',
-            transform: 'translateY(-50%)',
-            maxWidth: '320px',
-            transition: 'opacity 0.2s linear',
-            willChange: 'opacity',
-          }}
-        >
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange/80 mb-3">
-            02 · Deux voies
-          </div>
-          <p
-            className="font-serif text-white"
-            style={{ fontSize: '17px', lineHeight: 1.5 }}
-          >
-            Le chemin se sépare. À gauche, l'<em className="italic text-orange-hot">école</em> :
-            structurer, approfondir. À droite, l'<em className="italic text-orange-hot">alternance</em> :
-            livrer en équipe, frotter le code au réel. Deux voies parallèles, qui
-            montent ensemble.
-          </p>
-        </div>
-
-        <div
-          ref={narrationRef3}
-          className="absolute z-[5] pointer-events-none"
-          style={{
-            opacity: 0,
-            top: '50%',
-            right: 'clamp(24px, 6vw, 110px)',
-            transform: 'translateY(-50%)',
-            maxWidth: '320px',
-            transition: 'opacity 0.2s linear',
-            willChange: 'opacity',
-          }}
-        >
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange/80 mb-3">
-            03 · Pas encore au sommet
-          </div>
-          <p
-            className="font-serif text-white"
-            style={{ fontSize: '17px', lineHeight: 1.5 }}
-          >
-            Master en cours, alternance en cours. Plus haut qu'au début — mais
-            volontairement <em className="italic text-orange-hot">pas au sommet</em>.
-            Ce qui reste à grimper, c'est ce qui m'intéresse.
-          </p>
         </div>
 
         {/* Persistent halo — vignette cinématique permanente (transparent au centre, sombre sur les bords) */}
@@ -959,7 +977,7 @@ function Journey3DScene() {
                   maxWidth: '22ch',
                 }}
               >
-                Deux trajets en <em className="italic text-orange-hot">parallèle</em> : l'école et l'alternance.
+                Plusieurs chemins <em className="italic text-orange-hot">vers un même sommet.</em>
               </h2>
               <p
                 className="font-serif text-cream/80"
@@ -1020,9 +1038,9 @@ function Journey3DScene() {
                 maxWidth: '52ch',
               }}
             >
-              Chaque sentier en ouvre un autre. Chaque palier change la vue.
+              Mon sommet n'est pas un poste — c'est ce qui me reste à apprendre.
               <br />
-              Je ne suis pas au bout — c'est là tout l'intérêt.
+              Il avance à mesure que je monte.
             </p>
           </div>
         </div>
