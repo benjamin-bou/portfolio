@@ -1023,36 +1023,78 @@ function Journey3DScene() {
           }}
         >
           <div className="max-w-[820px] mx-auto px-[clamp(24px,5vw,80px)] text-center">
-            <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-orange-hot mb-8 inline-flex items-center gap-3.5">
-              <span className="w-10 h-px bg-orange-hot/50" />
-              À mi-chemin
-              <span className="w-10 h-px bg-orange-hot/50" />
+            {/* Status indicator with pulsing dot */}
+            <div className="inline-flex items-center gap-3 mb-12">
+              <span className="relative flex w-2.5 h-2.5">
+                <span
+                  className="absolute inline-flex w-full h-full rounded-full opacity-70 animate-ping"
+                  style={{ background: '#ff6a1f' }}
+                />
+                <span
+                  className="relative inline-flex rounded-full w-2.5 h-2.5"
+                  style={{
+                    background: '#ff6a1f',
+                    boxShadow: '0 0 12px rgba(255,176,87,0.8)',
+                  }}
+                />
+              </span>
+              <span className="font-mono uppercase tracking-[0.32em] text-orange-hot" style={{ fontSize: '12px' }}>
+                Ascension en cours
+              </span>
             </div>
-            <h3
-              className="font-serif font-normal text-white mx-auto mb-7"
-              style={{
-                fontSize: 'clamp(32px, 4.4vw, 64px)',
-                lineHeight: 1.08,
-                letterSpacing: '-0.015em',
-                maxWidth: '24ch',
-              }}
+
+            {/* Three stat columns: départ / position / sommet */}
+            <div className="grid grid-cols-3 gap-8 max-w-[680px] mx-auto mb-10 items-end">
+              <div className="text-left">
+                <div className="font-mono uppercase tracking-[0.28em] text-cream/55 mb-2" style={{ fontSize: '10px' }}>
+                  Départ
+                </div>
+                <div className="font-serif text-cream/85" style={{ fontSize: 'clamp(20px, 2.4vw, 28px)', lineHeight: 1 }}>
+                  1 035 m
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="font-mono uppercase tracking-[0.28em] text-orange-hot mb-2" style={{ fontSize: '10px' }}>
+                  Position
+                </div>
+                <div
+                  className="font-serif text-white"
+                  style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1, letterSpacing: '-0.015em' }}
+                >
+                  ~ 3 050 m
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-mono uppercase tracking-[0.28em] text-cream/55 mb-2" style={{ fontSize: '10px' }}>
+                  Sommet
+                </div>
+                <div className="font-serif text-cream/85" style={{ fontSize: 'clamp(20px, 2.4vw, 28px)', lineHeight: 1 }}>
+                  4 810 m
+                </div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div
+              className="relative h-[2px] rounded-full max-w-[680px] mx-auto"
+              style={{ background: 'rgba(243,232,216,0.18)' }}
             >
-              Le sommet attend.
-              <br />
-              <em className="italic text-orange-hot">Et c'est ce qui me fait monter.</em>
-            </h3>
-            <p
-              className="font-serif text-cream/75 mx-auto italic"
-              style={{
-                fontSize: 'clamp(16px, 1.3vw, 20px)',
-                lineHeight: 1.6,
-                maxWidth: '52ch',
-              }}
-            >
-              Mon sommet n'est pas un poste — c'est ce qui me reste à apprendre.
-              <br />
-              Il avance à mesure que je monte.
-            </p>
+              <div
+                className="absolute inset-y-0 left-0 rounded-full"
+                style={{
+                  width: '63%',
+                  background: 'linear-gradient(90deg, #ff6a1f, #ffd28a)',
+                  boxShadow: '0 0 14px rgba(255,176,87,.65)',
+                }}
+              />
+            </div>
+
+            {/* Footer line */}
+            <div className="mt-4 flex items-center justify-center gap-6 font-mono uppercase tracking-[0.3em] text-cream/55" style={{ fontSize: '10px' }}>
+              <span className="text-orange-hot">63 %</span>
+              <span className="w-px h-3 bg-cream/25" />
+              <span>▲ 1 760 m restants</span>
+            </div>
           </div>
         </div>
 
