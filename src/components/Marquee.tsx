@@ -1,4 +1,4 @@
-const ITEMS = ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Next.js', 'Tailwind', 'Docker', 'Figma', 'Git', 'Vite'];
+const ITEMS = ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind', 'Docker', 'Figma', 'Git', 'Vite'];
 
 export default function Marquee() {
   return (

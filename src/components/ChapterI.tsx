@@ -15,22 +15,22 @@ export default function ChapterI() {
           letterSpacing: '-0.02em',
         }}
       >
-        Du <em className="italic text-orange-hot">front</em> au{' '}
-        <em className="italic text-orange-hot">back</em>, une continuité — pas deux mondes.
+        <span className="whitespace-nowrap">Je suis développeur <em className="italic text-orange-hot">full-stack</em>.</span><br />J'aime peaufiner une interface, concevoir une <em className="italic text-orange-hot">API</em>, orchestrer un <em className="italic text-orange-hot">déploiement</em>.
       </h2>
       <p
         className="reveal delay-2 font-serif max-w-[32ch] text-cream/85"
         style={{ fontSize: 'clamp(22px, 2.2vw, 34px)', lineHeight: 1.4 }}
       >
-        J'aime les interfaces <em className="italic text-orange-hot">soignées</em> autant
-        que les API claires. Je choisis des technologies éprouvées, j'écris du code
-        lisible, et je soigne ce que l'utilisateur voit comme ce que l'équipe d'après lira.
+        À travers les projets <em className="italic text-orange-hot">d'école</em> et
+        l'<em className="italic text-orange-hot">alternance</em>, j'ai appris à intervenir
+        sur toutes les couches d'un projet.
       </p>
 
-      <div className="reveal delay-3 mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-[1000px]">
-        <TechCol label="Interface" items={['React · TypeScript', 'Tailwind · Motion', 'Design systems', 'Accessibilité']} />
-        <TechCol label="Serveur" items={['Node · Express', 'PostgreSQL', 'API REST', 'Authentification']} />
-        <TechCol label="Au quotidien" items={['Git & revue de code', 'Tests automatisés', 'Docker · CI/CD', 'Figma & design']} />
+      <div className="reveal delay-3 mt-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-[1200px]">
+        <TechCol label="Frontend" items={['React · TypeScript', 'CSS · Tailwind', 'Responsive design', 'Accessibilité']} />
+        <TechCol label="Backend" items={['PHP · Laravel', 'Ruby · Rails', 'API REST', 'PostgreSQL · MySQL']} />
+        <TechCol label="DevOps" items={['Docker · CI/CD', 'VPS', 'Monitoring', 'Tests automatisés']} />
+        <TechCol label="Outils" items={['Git & review', 'Figma & design', 'VS Code · JetBrains', 'Notion · Jira']} />
       </div>
     </section>
   );
