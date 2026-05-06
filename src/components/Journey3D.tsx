@@ -143,13 +143,13 @@ async function loadTerrainAssets(
       const x = TILE_X_START + i;
       const y = TILE_Y_START + j;
       tasks.push(
-        loadImage(`/terrain/h_${x}_${y}.png`).then((img) => {
+        loadImage(`/terrain/h_${x}_${y}.webp`).then((img) => {
           hctx.drawImage(img, i * TILE_SIZE, j * TILE_SIZE);
           tick();
         }),
       );
       tasks.push(
-        loadImage(`/terrain/s_${x}_${y}.jpg`).then((img) => {
+        loadImage(`/terrain/s_${x}_${y}.webp`).then((img) => {
           sctx.drawImage(img, i * TILE_SIZE, j * TILE_SIZE);
           tick();
         }),
