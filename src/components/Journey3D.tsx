@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import Journey2D from './Journey';
 
-// Tuiles : 24 colonnes (E/W) × 17 rangées (N/S, les 7 plus au nord ont été supprimées
-// car jamais visibles depuis la trajectoire caméra)
-const TILE_X_START = 8493;
-const TILE_Y_START = 5829;
+// Tuiles bakées en 2 atlas (heightmap-atlas.webp + satellite-atlas.webp).
+// Source : 24 colonnes (E/W) × 17 rangées (N/S) à 256 px/tuile, z=14, x ∈ [8493..8516],
+// y ∈ [5829..5845]. Les 7 rangées les plus au nord (y ∈ [5822..5828]) ont été supprimées
+// car jamais visibles depuis la trajectoire caméra. Régénération via scripts/bake-terrain-atlases.mjs.
 const TILES_X = 24;
 const TILES_Y = 17;
 const TILE_SIZE = 256;
@@ -121,43 +121,33 @@ async function loadTerrainAssets(
   heights: Float32Array;
   satTex: THREE.Texture;
 }> {
-  const heightCanvas = document.createElement('canvas');
-  heightCanvas.width = HEIGHTMAP_W;
-  heightCanvas.height = HEIGHTMAP_H;
-  const hctx = heightCanvas.getContext('2d', { willReadFrequently: true })!;
-
-  const satCanvas = document.createElement('canvas');
-  satCanvas.width = HEIGHTMAP_W;
-  satCanvas.height = HEIGHTMAP_H;
-  const sctx = satCanvas.getContext('2d')!;
-
-  const tasks: Promise<void>[] = [];
-  const total = TILES_X * TILES_Y * 2;
+  // Atlas pré-bakés : 2 fetches au lieu de 816.
+  // Heightmap : 6144×4352 lossless (Terrarium decoding intact).
+  // Satellite : 3072×2176 lossy q80 (résolution moitié — invisible aux distances caméra).
+  const total = 2;
   let done = 0;
   const tick = () => {
     done++;
     onProgress?.(done, total);
   };
-  for (let i = 0; i < TILES_X; i++) {
-    for (let j = 0; j < TILES_Y; j++) {
-      const x = TILE_X_START + i;
-      const y = TILE_Y_START + j;
-      tasks.push(
-        loadImage(`/terrain/h_${x}_${y}.webp`).then((img) => {
-          hctx.drawImage(img, i * TILE_SIZE, j * TILE_SIZE);
-          tick();
-        }),
-      );
-      tasks.push(
-        loadImage(`/terrain/s_${x}_${y}.webp`).then((img) => {
-          sctx.drawImage(img, i * TILE_SIZE, j * TILE_SIZE);
-          tick();
-        }),
-      );
-    }
-  }
-  await Promise.all(tasks);
 
+  const [heightImg, satImg] = await Promise.all([
+    loadImage('/terrain/heightmap-atlas.webp').then((img) => {
+      tick();
+      return img;
+    }),
+    loadImage('/terrain/satellite-atlas.webp').then((img) => {
+      tick();
+      return img;
+    }),
+  ]);
+
+  // Décodage heightmap : canvas full-res → ImageData → Float32Array de hauteurs
+  const heightCanvas = document.createElement('canvas');
+  heightCanvas.width = HEIGHTMAP_W;
+  heightCanvas.height = HEIGHTMAP_H;
+  const hctx = heightCanvas.getContext('2d', { willReadFrequently: true })!;
+  hctx.drawImage(heightImg, 0, 0, HEIGHTMAP_W, HEIGHTMAP_H);
   const data = hctx.getImageData(0, 0, HEIGHTMAP_W, HEIGHTMAP_H).data;
   const heights = new Float32Array(HEIGHTMAP_W * HEIGHTMAP_H);
   for (let i = 0; i < heights.length; i++) {
@@ -167,7 +157,9 @@ async function loadTerrainAssets(
     heights[i] = r * 256 + g + b / 256 - 32768;
   }
 
-  const satTex = new THREE.CanvasTexture(satCanvas);
+  // Texture satellite directement depuis l'image (pas de canvas intermédiaire)
+  const satTex = new THREE.Texture(satImg);
+  satTex.needsUpdate = true;
   satTex.colorSpace = THREE.SRGBColorSpace;
   satTex.anisotropy = 16;
   satTex.minFilter = THREE.LinearMipmapLinearFilter;
@@ -202,6 +194,8 @@ function Journey3DScene() {
 
     let disposed = false;
     let raf = 0;
+    let sectionVisible = true;
+    let animateFn: (() => void) | null = null;
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -680,7 +674,10 @@ function Journey3DScene() {
       };
 
       const animate = () => {
-        if (disposed) return;
+        if (disposed || !sectionVisible) {
+          raf = 0;
+          return;
+        }
         raf = requestAnimationFrame(animate);
 
         // Smooth scroll progress (lower = smoother but more lag)
@@ -759,6 +756,7 @@ function Journey3DScene() {
           el.dataset.side = stop.side;
         });
       };
+      animateFn = animate;
       raf = requestAnimationFrame(animate);
 
       // Force one render even if user hasn't scrolled
@@ -781,12 +779,25 @@ function Journey3DScene() {
     const onResize = () => setRendererSize();
     const onScroll = () => updateScrollProgress();
 
+    // Pause rAF lorsque la section est offscreen (économie CPU/GPU)
+    const visibilityObs = new IntersectionObserver(
+      (entries) => {
+        sectionVisible = entries[0]?.isIntersecting ?? true;
+        if (sectionVisible && raf === 0 && animateFn && !disposed) {
+          raf = requestAnimationFrame(animateFn);
+        }
+      },
+      { rootMargin: '200px 0px' },
+    );
+    visibilityObs.observe(section);
+
     window.addEventListener('resize', onResize);
     window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
+      visibilityObs.disconnect();
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onScroll);
       pathMeshes.forEach((m) => {
