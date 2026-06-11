@@ -33,7 +33,7 @@ const CORRIDOR_RADIUS = 55;
 const CORRIDOR_2D: [number, number][] = [
   [-5, -3], [-4, 2], [-3, 6], [-9, 11], [-15, 15], [-22, 20], [-26, 30], [-30, 42],
   [1, 11], [4, 14], [0, 22], [-5, 32], [-11, 42],
-  [-5, -18], [-4, -10], [-3, -2],
+  [10, -24], [4, -14], [-1, -5],
 ];
 
 type StopId = 'licence' | 'bachelor' | 'cap' | 'epitech' | 'spayr';
@@ -408,7 +408,7 @@ function Journey3DScene() {
       sharedTerrainMatRef = sharedTerrainMat;
 
       // Build paths — glued to terrain but Y locally smoothed (follows valleys, not bumps)
-      const PATH_OFFSET = 0.45;
+      const PATH_OFFSET = 0.3;
       const SMOOTH_WINDOW = 9; // ±9 samples = 19-wide window
       const buildPath = (points2D: [number, number][]) => {
         const pts2D = points2D.map(([x, z]) => new THREE.Vector3(x, 0, z));
@@ -490,7 +490,7 @@ function Journey3DScene() {
       ]);
 
       const buildPathMesh = (curve: THREE.CatmullRomCurve3, color: THREE.Color) => {
-        const tubeGeom = new THREE.TubeGeometry(curve, 160, 0.85, 8, false);
+        const tubeGeom = new THREE.TubeGeometry(curve, 160, 0.45, 8, false);
         const mat = new THREE.ShaderMaterial({
           transparent: true,
           depthWrite: false,
@@ -529,7 +529,10 @@ function Journey3DScene() {
               col += uColorHot * lead * 0.8;
               float fogF = 1.0 - exp(-vDist * 0.0035);
               col = mix(col, vec3(0.70, 0.78, 0.88), fogF * 0.6);
-              gl_FragColor = vec4(col, 1.0);
+              // Pointe en fondu progressif (pas de cap cylindrique dur), idem au départ
+              float tipFade = 1.0 - smoothstep(uProgress - 0.015, uProgress, vT);
+              tipFade *= smoothstep(0.0, 0.012, vT);
+              gl_FragColor = vec4(col, tipFade);
             }
           `,
         });
@@ -627,20 +630,24 @@ function Journey3DScene() {
       //   Acte 2 (p ~0.3→0.65): crane shot — élévation + recul au moment du fork
       //   Acte 3 (p 0.65→1)   : vue d'ensemble face au massif (labels lisibles)
       const groundAt = (x: number, z: number) => sampleHeight(x, z);
+      // L'acte 1 suit l'axe réel de la vallée de Chamonix (diagonale NE→SW :
+      // fond à y≈17 de (15,-30) vers (-8,+5)) en s'approchant de la gare.
       const camKeys = [
-        new THREE.Vector3(-5, groundAt(-5, -18) + 5, -18),
-        new THREE.Vector3(-4.2, groundAt(-4.2, -9) + 6, -9),
-        new THREE.Vector3(-3.5, groundAt(-3.5, -2) + 9, -2),
-        new THREE.Vector3(-1, 50, -20),
-        new THREE.Vector3(-2, 74, -42),
+        new THREE.Vector3(10, groundAt(10, -24) + 6, -24),
+        new THREE.Vector3(4, groundAt(4, -14) + 7, -14),
+        new THREE.Vector3(-1, groundAt(-1, -5) + 10, -5),
+        new THREE.Vector3(0, 56, -30),
+        new THREE.Vector3(-1, 76, -46),
         new THREE.Vector3(-2, 88, -55),
       ];
+      // L'acte 1 regarde VERS LE HAUT (massif + ciel dans le cadre, tracé en bas) ;
+      // les actes 2-3 redescendent progressivement vers le fork.
       const lookKeys = [
-        new THREE.Vector3(-4, groundAt(-4, 4) + 7, 4),
-        new THREE.Vector3(-3.5, groundAt(-3.5, 8) + 9, 8),
-        new THREE.Vector3(-4, groundAt(-4, 18) + 14, 18),
-        new THREE.Vector3(-9, 32, 24),
-        new THREE.Vector3(-15, 26, 29),
+        new THREE.Vector3(-4, 24, 6),
+        new THREE.Vector3(-4, 24, 8),
+        new THREE.Vector3(-5, 23, 10),
+        new THREE.Vector3(-9, 28, 24),
+        new THREE.Vector3(-15, 25, 29),
         new THREE.Vector3(-18, 22, 32),
       ];
       const camCurve = new THREE.CatmullRomCurve3(camKeys, false, 'catmullrom', 0.5);
@@ -755,8 +762,11 @@ function Journey3DScene() {
             glowSprite: THREE.Sprite;
             coreMat: THREE.MeshBasicMaterial;
           };
-          ud.beamMat.uniforms.uOpacity.value = reveal;
-          ud.glowSprite.material.opacity = reveal * 0.9;
+          // Fade des beams quand la caméra s'approche (sinon ils remplissent l'écran)
+          const camD = camera.position.distanceTo(grp.position);
+          const proxFade = smoothstep(14, 30, camD);
+          ud.beamMat.uniforms.uOpacity.value = reveal * proxFade;
+          ud.glowSprite.material.opacity = reveal * 0.9 * Math.max(proxFade, 0.35);
           const pulse = 0.92 + Math.sin(performance.now() * 0.002 + (s.id.charCodeAt(0))) * 0.08;
           grp.scale.setScalar(reveal * pulse);
         });
