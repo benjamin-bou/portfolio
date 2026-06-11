@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import Journey2D from './Journey';
 import { createSunGlowTexture, createCloudTexture } from './journey3d/textures';
 import { buildSky, buildClouds, buildMist, driftSprites } from './journey3d/atmosphere';
+import { applyTerrainShader } from './journey3d/terrainShader';
 
 // Tuiles bakées en 2 atlas (heightmap-atlas.webp + satellite-atlas.webp).
 // Source : 24 colonnes (E/W) × 17 rangées (N/S) à 256 px/tuile, z=14, x ∈ [8493..8516],
@@ -220,7 +221,7 @@ function Journey3DScene() {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xc8dbe8);
-    scene.fog = new THREE.FogExp2(0xc6d6e3, 0.0042);
+    // Pas de FogExp2 global : la perspective aérienne vit dans le shader terrain.
 
     const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 800);
 
@@ -345,6 +346,7 @@ function Journey3DScene() {
         roughness: 0.96,
         metalness: 0,
       });
+      applyTerrainShader(sharedTerrainMat);
       const terrainGroup = new THREE.Group();
       for (let cx = 0; cx < TERRAIN_CHUNKS; cx++) {
         for (let cz = 0; cz < TERRAIN_CHUNKS; cz++) {
@@ -484,15 +486,19 @@ function Journey3DScene() {
           vertexShader: `
             varying float vT;
             varying vec3 vNormal;
+            varying float vDist;
             void main() {
               vT = uv.x;
               vNormal = normalize(normalMatrix * normal);
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              vec4 mv = modelViewMatrix * vec4(position, 1.0);
+              vDist = -mv.z;
+              gl_Position = projectionMatrix * mv;
             }
           `,
           fragmentShader: `
             varying float vT;
             varying vec3 vNormal;
+            varying float vDist;
             uniform float uProgress;
             uniform vec3 uColorHot;
             uniform vec3 uColorBase;
@@ -504,6 +510,8 @@ function Journey3DScene() {
               float fres = pow(1.0 - max(dot(vNormal, vec3(0.0,0.0,1.0)), 0.0), 2.0);
               col += vec3(1.0, 0.6, 0.3) * fres * 0.5;
               col += uColorHot * lead * 0.8;
+              float fogF = 1.0 - exp(-vDist * 0.0035);
+              col = mix(col, vec3(0.70, 0.78, 0.88), fogF * 0.6);
               gl_FragColor = vec4(col, 1.0);
             }
           `,
