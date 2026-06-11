@@ -286,6 +286,7 @@ function Journey3DScene() {
     let terrain: THREE.Group | THREE.Mesh | null = null;
     let sharedTerrainMatRef: THREE.Material | null = null;
     const pathMeshes: THREE.Mesh[] = [];
+    const pathShaderMats: THREE.ShaderMaterial[] = [];
     const stopGroups = new Map<StopId, THREE.Group>();
     const labelEls = new Map<StopId, HTMLElement>();
     STOPS.forEach((s) => {
@@ -489,32 +490,69 @@ function Journey3DScene() {
         [-11, 42], // Refuge des Grands Mulets (SPAYR, 3051m)
       ]);
 
+      // Tracé en deux passes : cœur fin incandescent + halo additif doux.
+      // Le shimmer (uTime) donne une impulsion lumineuse qui remonte la ligne.
       const buildPathMesh = (curve: THREE.CatmullRomCurve3, color: THREE.Color) => {
-        const tubeGeom = new THREE.TubeGeometry(curve, 160, 0.45, 8, false);
-        const mat = new THREE.ShaderMaterial({
+        const makeUniforms = () => ({
+          uProgress: { value: 0 },
+          uColorHot: { value: new THREE.Color(0xffe7c2) },
+          uColorBase: { value: color },
+          uTime: { value: 0 },
+        });
+        const vertexShader = `
+          varying float vT;
+          varying vec3 vNormal;
+          varying vec3 vViewDir;
+          varying float vDist;
+          void main() {
+            vT = uv.x;
+            vNormal = normalize(normalMatrix * normal);
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            vViewDir = normalize(-mv.xyz);
+            vDist = -mv.z;
+            gl_Position = projectionMatrix * mv;
+          }
+        `;
+        const coreGeom = new THREE.TubeGeometry(curve, 160, 0.17, 8, false);
+        const coreMat = new THREE.ShaderMaterial({
           transparent: true,
           depthWrite: false,
-          uniforms: {
-            uProgress: { value: 0 },
-            uColorHot: { value: new THREE.Color(0xffd28a) },
-            uColorBase: { value: color },
-            uTime: { value: 0 },
-          },
-          vertexShader: `
-            varying float vT;
-            varying vec3 vNormal;
-            varying float vDist;
-            void main() {
-              vT = uv.x;
-              vNormal = normalize(normalMatrix * normal);
-              vec4 mv = modelViewMatrix * vec4(position, 1.0);
-              vDist = -mv.z;
-              gl_Position = projectionMatrix * mv;
-            }
-          `,
+          uniforms: makeUniforms(),
+          vertexShader,
           fragmentShader: `
             varying float vT;
             varying vec3 vNormal;
+            varying vec3 vViewDir;
+            varying float vDist;
+            uniform float uProgress;
+            uniform vec3 uColorHot;
+            uniform vec3 uColorBase;
+            void main() {
+              if (vT > uProgress) discard;
+              float lead = smoothstep(uProgress - 0.06, uProgress, vT);
+              float ndv = max(dot(normalize(vNormal), normalize(vViewDir)), 0.0);
+              vec3 col = mix(uColorBase, uColorHot, lead * 0.9);
+              col += vec3(1.0, 0.95, 0.85) * pow(ndv, 3.0) * 0.55; // axe incandescent
+              float fogF = 1.0 - exp(-vDist * 0.0035);
+              col = mix(col, vec3(0.70, 0.78, 0.88), fogF * 0.45);
+              // Fondus doux en pointe et au départ (pas de cap cylindrique dur)
+              float alpha = 1.0 - smoothstep(uProgress - 0.012, uProgress, vT);
+              alpha *= smoothstep(0.0, 0.012, vT);
+              gl_FragColor = vec4(col, alpha);
+            }
+          `,
+        });
+        const glowGeom = new THREE.TubeGeometry(curve, 160, 0.55, 8, false);
+        const glowMat = new THREE.ShaderMaterial({
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          uniforms: makeUniforms(),
+          vertexShader,
+          fragmentShader: `
+            varying float vT;
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
             varying float vDist;
             uniform float uProgress;
             uniform vec3 uColorHot;
@@ -522,25 +560,33 @@ function Journey3DScene() {
             uniform float uTime;
             void main() {
               if (vT > uProgress) discard;
-              float lead = smoothstep(uProgress - 0.04, uProgress, vT);
-              vec3 col = mix(uColorBase, uColorHot, lead);
-              float fres = pow(1.0 - max(dot(vNormal, vec3(0.0,0.0,1.0)), 0.0), 2.0);
-              col += vec3(1.0, 0.6, 0.3) * fres * 0.5;
-              col += uColorHot * lead * 0.8;
+              float lead = smoothstep(uProgress - 0.06, uProgress, vT);
+              float ndv = max(dot(normalize(vNormal), normalize(vViewDir)), 0.0);
+              float glow = pow(ndv, 2.0);
+              // Impulsion lumineuse subtile qui remonte le tracé
+              float shimmer = 0.85 + 0.15 * sin(vT * 60.0 - uTime * 2.5);
               float fogF = 1.0 - exp(-vDist * 0.0035);
-              col = mix(col, vec3(0.70, 0.78, 0.88), fogF * 0.6);
-              // Pointe en fondu progressif (pas de cap cylindrique dur), idem au départ
-              float tipFade = 1.0 - smoothstep(uProgress - 0.015, uProgress, vT);
-              tipFade *= smoothstep(0.0, 0.012, vT);
-              gl_FragColor = vec4(col, tipFade);
+              float alpha = glow * (0.28 + lead * 0.5) * shimmer * (1.0 - fogF * 0.7);
+              alpha *= 1.0 - smoothstep(uProgress - 0.01, uProgress, vT);
+              alpha *= smoothstep(0.0, 0.012, vT);
+              vec3 col = mix(uColorBase, uColorHot, lead);
+              gl_FragColor = vec4(col, alpha);
             }
           `,
         });
-        const mesh = new THREE.Mesh(tubeGeom, mat);
-        mesh.renderOrder = 5;
-        scene.add(mesh);
-        pathMeshes.push(mesh);
-        return { mesh, curve };
+        const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+        coreMesh.renderOrder = 5;
+        const glowMesh = new THREE.Mesh(glowGeom, glowMat);
+        glowMesh.renderOrder = 6;
+        scene.add(coreMesh);
+        scene.add(glowMesh);
+        pathMeshes.push(coreMesh, glowMesh);
+        pathShaderMats.push(coreMat, glowMat);
+        const setProgress = (v: number) => {
+          coreMat.uniforms.uProgress.value = v;
+          glowMat.uniforms.uProgress.value = v;
+        };
+        return { setProgress, curve };
       };
 
       const pre = buildPathMesh(preCurve, new THREE.Color(0xff6a1f));
@@ -746,11 +792,13 @@ function Journey3DScene() {
         const preP = smoothstep(0, 0.3, p);
         const seg1P = smoothstep(0.3, 0.65, p);
         const seg2P = smoothstep(0.65, 0.95, p);
-        (pre.mesh.material as THREE.ShaderMaterial).uniforms.uProgress.value = preP;
-        (left1.mesh.material as THREE.ShaderMaterial).uniforms.uProgress.value = seg1P;
-        (right1.mesh.material as THREE.ShaderMaterial).uniforms.uProgress.value = seg1P;
-        (left2.mesh.material as THREE.ShaderMaterial).uniforms.uProgress.value = seg2P;
-        (right2.mesh.material as THREE.ShaderMaterial).uniforms.uProgress.value = seg2P;
+        pre.setProgress(preP);
+        left1.setProgress(seg1P);
+        right1.setProgress(seg1P);
+        left2.setProgress(seg2P);
+        right2.setProgress(seg2P);
+        const shimmerT = now * 0.001;
+        for (const m of pathShaderMats) m.uniforms.uTime.value = shimmerT;
 
         // Animate stops based on path progress reaching them
         STOPS.forEach((s) => {
