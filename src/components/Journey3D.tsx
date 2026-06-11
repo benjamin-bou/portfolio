@@ -622,17 +622,32 @@ function Journey3DScene() {
         group.userData = { beamMat, glowSprite, coreMat, baseY: 0.7 };
       });
 
-      // "Face-the-mountain" camera: always north of Chamonix, looking south toward the
-      // Mont Blanc massif where the traces evolve. Smooth Y rise + Z pull-back over scroll.
-      const CAM_CLEARANCE = 25;
-      const CAM_MIN_Y_MAIN = 65;
-      const camPos0 = new THREE.Vector3(8, 65, -32); // close, slight east
-      const camPos1 = new THREE.Vector3(-2, 88, -55); // moins loin, moins haute, plus en face
-      const camLook0 = new THREE.Vector3(-5, 18, 4); // near LICENCE
-      const camLook1 = new THREE.Vector3(-18, 22, 32); // midpoint of Y-fork
-      // Post-completion ("there's still more to climb"): caméra avance, descend, regarde vers le haut
-      const camPosPost = new THREE.Vector3(-3.5, 82, -41); // halfway: advance + descend gently, stay high enough
-      const camLookPost = new THREE.Vector3(-12, 50, 55); // moderate tilt up toward summit, trace still framed bottom
+      // Rig caméra cinématique — 3 actes pilotés par p :
+      //   Acte 1 (p 0→~0.3)   : au ras de la vallée, derrière le départ, le massif domine
+      //   Acte 2 (p ~0.3→0.65): crane shot — élévation + recul au moment du fork
+      //   Acte 3 (p 0.65→1)   : vue d'ensemble face au massif (labels lisibles)
+      const groundAt = (x: number, z: number) => sampleHeight(x, z);
+      const camKeys = [
+        new THREE.Vector3(-5, groundAt(-5, -18) + 5, -18),
+        new THREE.Vector3(-4.2, groundAt(-4.2, -9) + 6, -9),
+        new THREE.Vector3(-3.5, groundAt(-3.5, -2) + 9, -2),
+        new THREE.Vector3(-1, 50, -20),
+        new THREE.Vector3(-2, 74, -42),
+        new THREE.Vector3(-2, 88, -55),
+      ];
+      const lookKeys = [
+        new THREE.Vector3(-4, groundAt(-4, 4) + 7, 4),
+        new THREE.Vector3(-3.5, groundAt(-3.5, 8) + 9, 8),
+        new THREE.Vector3(-4, groundAt(-4, 18) + 14, 18),
+        new THREE.Vector3(-9, 32, 24),
+        new THREE.Vector3(-15, 26, 29),
+        new THREE.Vector3(-18, 22, 32),
+      ];
+      const camCurve = new THREE.CatmullRomCurve3(camKeys, false, 'catmullrom', 0.5);
+      const lookCurve = new THREE.CatmullRomCurve3(lookKeys, false, 'catmullrom', 0.5);
+      // Post-completion ("there's still more to climb") — conservé
+      const camPosPost = new THREE.Vector3(-3.5, 82, -41);
+      const camLookPost = new THREE.Vector3(-12, 50, 55);
       const targetPos = new THREE.Vector3();
       const targetLook = new THREE.Vector3();
       const smoothPos = new THREE.Vector3();
@@ -641,26 +656,31 @@ function Journey3DScene() {
 
       function updateCamera(p: number, p2: number) {
         const t = smoothstep(0, 1, p);
-        const sway = Math.sin(p * Math.PI * 1.4) * 6;
-
-        targetPos.copy(camPos0).lerp(camPos1, t);
+        camCurve.getPoint(t, targetPos);
+        lookCurve.getPoint(t, targetLook);
+        // Sway désactivé au ras du sol (acte 1), présent en hauteur
+        const sway = Math.sin(p * Math.PI * 1.4) * 6 * smoothstep(0.35, 0.7, p);
         targetPos.x += sway;
-        targetLook.copy(camLook0).lerp(camLook1, t);
 
-        // Post-completion blend: advance + descend + tilt up
         if (p2 > 0) {
           const t2 = smoothstep(0, 1, p2);
           targetPos.lerp(camPosPost, t2);
           targetLook.lerp(camLookPost, t2);
         }
 
-        // Anti-clipping: terrain clearance always; CAM_MIN_Y relaxes during post-completion descent
+        // Anti-clipping : clearance faible au sol, large en vue haute
+        const clearance = 3 + 22 * smoothstep(0.25, 0.6, p);
         const groundY = sampleHeight(targetPos.x, targetPos.z);
-        const minHeight = CAM_MIN_Y_MAIN * (1 - p2) + 0 * p2;
-        const minY = Math.max(minHeight, groundY + CAM_CLEARANCE);
+        const minY = groundY + clearance;
         if (targetPos.y < minY) targetPos.y = minY;
 
-        // Frame-to-frame smoothing
+        // FOV large dans la vallée (immersion), resserré en vue d'ensemble
+        const fov = 62 - 14 * smoothstep(0.15, 0.6, p);
+        if (Math.abs(camera.fov - fov) > 0.01) {
+          camera.fov = fov;
+          camera.updateProjectionMatrix();
+        }
+
         if (!smoothInit) {
           smoothPos.copy(targetPos);
           smoothLook.copy(targetLook);
@@ -669,7 +689,6 @@ function Journey3DScene() {
           smoothPos.lerp(targetPos, 0.06);
           smoothLook.lerp(targetLook, 0.06);
         }
-
         camera.position.copy(smoothPos);
         camera.lookAt(smoothLook);
       }
