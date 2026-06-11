@@ -24,8 +24,16 @@ const TERRAIN_X = TERRAIN_X_HALF * 2; // 320
 const TERRAIN_Z = TERRAIN_Z_END - TERRAIN_Z_START; // ≈ 226.67
 
 const ELEVATION_SCALE = 0.016;
-const TERRAIN_SEGMENTS = 320;
-const TERRAIN_CHUNKS = 4; // 4x4 = 16 chunks for frustum culling
+const TERRAIN_CHUNKS = 6; // grille 6×6 de chunks frustum-cullés
+const HI_SEGMENTS = 128; // chunks proches du corridor caméra/tracé
+const LO_SEGMENTS = 48; // chunks lointains
+const CORRIDOR_RADIUS = 55;
+// Points 2D (x,z) du corridor : waypoints du tracé + trajectoire caméra en vallée.
+const CORRIDOR_2D: [number, number][] = [
+  [-5, -3], [-4, 2], [-3, 6], [-9, 11], [-15, 15], [-22, 20], [-26, 30], [-30, 42],
+  [1, 11], [4, 14], [0, 22], [-5, 32], [-11, 42],
+  [-5, -18], [-4, -10], [-3, -2],
+];
 
 type StopId = 'licence' | 'bachelor' | 'cap' | 'epitech' | 'spayr';
 
@@ -332,7 +340,6 @@ function Journey3DScene() {
       // Shared material/texture; only geometry is per-chunk. Grille X×Z = TERRAIN_CHUNKS².
       const chunkSizeX = TERRAIN_X / TERRAIN_CHUNKS;
       const chunkSizeZ = TERRAIN_Z / TERRAIN_CHUNKS;
-      const chunkSegments = Math.floor(TERRAIN_SEGMENTS / TERRAIN_CHUNKS);
       const sharedTerrainMat = new THREE.MeshStandardMaterial({
         map: satTex,
         roughness: 0.96,
@@ -341,6 +348,15 @@ function Journey3DScene() {
       const terrainGroup = new THREE.Group();
       for (let cx = 0; cx < TERRAIN_CHUNKS; cx++) {
         for (let cz = 0; cz < TERRAIN_CHUNKS; cz++) {
+          // Résolution selon la distance du centre du chunk au corridor
+          const centerX = -TERRAIN_X_HALF + chunkSizeX * (cx + 0.5);
+          const centerZ = TERRAIN_Z_START + chunkSizeZ * (cz + 0.5);
+          let minD = Infinity;
+          for (const [px, pz] of CORRIDOR_2D) {
+            const d = Math.hypot(centerX - px, centerZ - pz);
+            if (d < minD) minD = d;
+          }
+          const chunkSegments = minD < CORRIDOR_RADIUS ? HI_SEGMENTS : LO_SEGMENTS;
           const cgeo = new THREE.PlaneGeometry(chunkSizeX, chunkSizeZ, chunkSegments, chunkSegments);
           cgeo.rotateX(-Math.PI / 2);
           const cN = chunkSegments + 1;
@@ -362,8 +378,8 @@ function Journey3DScene() {
           }
           cgeo.computeVertexNormals();
           const cmesh = new THREE.Mesh(cgeo, sharedTerrainMat);
-          cmesh.position.x = -TERRAIN_X_HALF + chunkSizeX * (cx + 0.5);
-          cmesh.position.z = TERRAIN_Z_START + chunkSizeZ * (cz + 0.5);
+          cmesh.position.x = centerX;
+          cmesh.position.z = centerZ;
           cmesh.frustumCulled = true;
           terrainGroup.add(cmesh);
         }
