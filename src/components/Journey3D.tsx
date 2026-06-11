@@ -218,6 +218,9 @@ function Journey3DScene() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false; // scène statique : rendu une seule fois
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xc8dbe8);
@@ -254,9 +257,21 @@ function Journey3DScene() {
 
     // Realistic daylight: bright white-ish sun + sky-blue ambient
     const sunLight = new THREE.DirectionalLight(0xfff5e0, 2.8);
-    sunLight.position.set(80, 120, -60);
+    sunLight.position.copy(SUN_POS); // aligné avec le disque solaire visible
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.set(4096, 4096);
+    sunLight.shadow.camera.left = -210;
+    sunLight.shadow.camera.right = 210;
+    sunLight.shadow.camera.top = 230;
+    sunLight.shadow.camera.bottom = -230;
+    sunLight.shadow.camera.near = 20;
+    sunLight.shadow.camera.far = 800;
+    sunLight.shadow.bias = -0.0004;
+    sunLight.shadow.normalBias = 1.5;
+    sunLight.target.position.set(0, 20, 50);
     scene.add(sunLight);
-    const hemi = new THREE.HemisphereLight(0xc0d4e6, 0x6b6359, 0.7);
+    scene.add(sunLight.target);
+    const hemi = new THREE.HemisphereLight(0xc0d4e6, 0x6b6359, 0.85);
     scene.add(hemi);
     scene.add(new THREE.AmbientLight(0xffffff, 0.18));
 
@@ -383,6 +398,8 @@ function Journey3DScene() {
           cmesh.position.x = centerX;
           cmesh.position.z = centerZ;
           cmesh.frustumCulled = true;
+          cmesh.castShadow = true;
+          cmesh.receiveShadow = true;
           terrainGroup.add(cmesh);
         }
       }
@@ -766,6 +783,7 @@ function Journey3DScene() {
       raf = requestAnimationFrame(animate);
 
       // Force one render even if user hasn't scrolled
+      renderer.shadowMap.needsUpdate = true; // un seul rendu de la shadow map
       renderer.render(scene, camera);
     }
 
