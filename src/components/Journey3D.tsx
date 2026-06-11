@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import Journey2D from './Journey';
+import { createSunGlowTexture, createCloudTexture } from './journey3d/textures';
+import { buildSky, buildClouds, buildMist, driftSprites } from './journey3d/atmosphere';
 
 // Tuiles bakées en 2 atlas (heightmap-atlas.webp + satellite-atlas.webp).
 // Source : 24 colonnes (E/W) × 17 rangées (N/S) à 256 px/tuile, z=14, x ∈ [8493..8516],
@@ -214,49 +216,15 @@ function Journey3DScene() {
 
     const camera = new THREE.PerspectiveCamera(48, 1, 0.5, 800);
 
-    // Sky dome — clear blue daylight gradient
-    const skyGeom = new THREE.SphereGeometry(400, 32, 16);
-    const skyMat = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      depthWrite: false,
-      fog: false,
-      uniforms: {
-        uTop: { value: new THREE.Color(0x4a86b8) },
-        uHorizon: { value: new THREE.Color(0xd6e4ee) },
-        uBottom: { value: new THREE.Color(0xa8b9c5) },
-      },
-      vertexShader: `
-        varying vec3 vWorldPosition;
-        void main() {
-          vec4 wp = modelMatrix * vec4(position, 1.0);
-          vWorldPosition = wp.xyz;
-          gl_Position = projectionMatrix * viewMatrix * wp;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vWorldPosition;
-        uniform vec3 uTop;
-        uniform vec3 uHorizon;
-        uniform vec3 uBottom;
-        void main() {
-          float h = normalize(vWorldPosition).y;
-          vec3 col;
-          if (h > 0.0) {
-            col = mix(uHorizon, uTop, smoothstep(0.0, 0.55, h));
-          } else {
-            col = mix(uHorizon, uBottom, smoothstep(0.0, 0.45, -h));
-          }
-          gl_FragColor = vec4(col, 1.0);
-        }
-      `,
-    });
-    const sky = new THREE.Mesh(skyGeom, skyMat);
-    scene.add(sky);
+    // Position du soleil (disque visuel, lumière et halo du ciel alignés)
+    const SUN_POS = new THREE.Vector3(120, 180, -160);
+    const skyObj = buildSky(SUN_POS);
+    scene.add(skyObj.mesh);
 
     // Sun visual disk — bright white-ish high in sky
     const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff8e8, fog: false });
     const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(5, 32, 32), sunMat);
-    sunMesh.position.set(120, 180, -160);
+    sunMesh.position.copy(SUN_POS);
     scene.add(sunMesh);
 
     // Subtle bloom around the sun
@@ -282,6 +250,13 @@ function Journey3DScene() {
     const hemi = new THREE.HemisphereLight(0xc0d4e6, 0x6b6359, 0.7);
     scene.add(hemi);
     scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+
+    // Nuages d'altitude + brume de vallée
+    const cloudTex = createCloudTexture();
+    const clouds = buildClouds(cloudTex);
+    const mist = buildMist(cloudTex);
+    scene.add(clouds.group);
+    scene.add(mist.group);
 
     // Loading state — keep these alive for cleanup
     let terrain: THREE.Group | THREE.Mesh | null = null;
@@ -673,12 +648,19 @@ function Journey3DScene() {
         spayr: 0.95,
       };
 
+      let lastTime = performance.now();
       const animate = () => {
         if (disposed || !sectionVisible) {
           raf = 0;
           return;
         }
         raf = requestAnimationFrame(animate);
+
+        const now = performance.now();
+        const dt = Math.min(0.1, (now - lastTime) / 1000);
+        lastTime = now;
+        driftSprites(clouds.group, dt);
+        driftSprites(mist.group, dt * 0.5);
 
         // Smooth scroll progress (lower = smoother but more lag)
         scrollProgress += (scrollProgressTarget - scrollProgress) * 0.04;
@@ -822,12 +804,14 @@ function Journey3DScene() {
           }
         });
       });
+      clouds.dispose();
+      mist.dispose();
+      cloudTex.dispose();
+      skyObj.dispose();
       glowMat.dispose();
       glowTex.dispose();
       sunMat.dispose();
       sunMesh.geometry.dispose();
-      skyMat.dispose();
-      skyGeom.dispose();
       renderer.dispose();
     };
   }, []);
@@ -976,8 +960,8 @@ function Journey3DScene() {
           >
             <div className="max-w-[640px]">
               <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-orange mb-10 inline-flex items-center gap-3.5">
-                <span className="w-10 h-px bg-orange/40" />
-                Chapitre III · Le parcours
+                <span className="w-[30px] h-px bg-orange" />
+                Chapitre IV · Le parcours
               </div>
               <h2
                 className="font-serif font-normal text-white mb-7"
@@ -1210,30 +1194,6 @@ function Journey3DScene() {
       </div>
     </section>
   );
-}
-
-function createSunGlowTexture() {
-  const size = 256;
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  const ctx = c.getContext('2d')!;
-  const grad = ctx.createRadialGradient(
-    size / 2,
-    size / 2,
-    0,
-    size / 2,
-    size / 2,
-    size / 2,
-  );
-  grad.addColorStop(0, 'rgba(255,235,180,1)');
-  grad.addColorStop(0.18, 'rgba(255,180,90,0.85)');
-  grad.addColorStop(0.45, 'rgba(255,120,60,0.35)');
-  grad.addColorStop(1, 'rgba(255,90,40,0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
 }
 
 export default function Journey3D() {
