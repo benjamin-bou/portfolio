@@ -200,7 +200,8 @@ export default function Journey() {
       />
 
       <div className="reveal chapter-tag font-mono text-[11px] uppercase tracking-[0.3em] text-orange mb-10 inline-flex items-center gap-3.5">
-        Chapitre III · Le parcours
+        <span className="w-[30px] h-px bg-orange" />
+        Chapitre IV · Le parcours
       </div>
       <div className="max-w-[720px] mb-20">
         <h2

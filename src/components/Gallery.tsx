@@ -214,16 +214,14 @@ export default function Gallery() {
       style={{ padding: 'clamp(60px, 10vh, 120px) 0' }}
     >
       <div
-        className="flex justify-between items-baseline mb-12 max-w-[1400px] mx-auto flex-wrap gap-4"
+        className="flex justify-between items-end mb-12 max-w-[1400px] mx-auto flex-wrap gap-4"
         style={{ padding: '0 clamp(24px, 5vw, 80px)' }}
       >
-        <h3
-          className="reveal font-serif font-normal"
-          style={{ fontSize: 'clamp(30px, 4vw, 56px)', letterSpacing: '-0.02em' }}
-        >
-          Chapitre II · <em className="italic text-orange-hot">Quelques</em> projets
-        </h3>
-        <div className="reveal delay-1 text-[11px] uppercase tracking-[0.22em] text-muted">
+        <div className="reveal font-mono text-[11px] uppercase tracking-[0.3em] text-orange inline-flex items-center gap-3.5">
+          <span className="w-[30px] h-px bg-orange" />
+          Chapitre III · Quelques projets
+        </div>
+        <div className="reveal delay-1 font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
           4 projets · alternance, école, personnels · faire défiler →
         </div>
       </div>

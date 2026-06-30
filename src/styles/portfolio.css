@@ -24,16 +24,6 @@ body::before {
   opacity: 0.08;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 98;
-  background: repeating-linear-gradient(0deg, rgba(255,255,255,.01) 0 1px, transparent 1px 3px);
-  mix-blend-mode: overlay;
-}
-
 /* ============ Glow cursor ============ */
 .glow-cursor {
   position: fixed; top: 0; left: 0;
@@ -349,6 +339,32 @@ body:hover .glow-cursor { opacity: 1; }
 }
 .nav-link:hover::after { transform: scaleX(1); }
 
+/* ============ Nav title — fades in past hero, fades out again when CTA arrives ============ */
+.nav-title {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity .5s cubic-bezier(.2,.8,.2,1), transform .5s cubic-bezier(.2,.8,.2,1);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.nav-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* CTA section name — same fade pattern, slides in from below as section appears */
+.cta-name {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .5s cubic-bezier(.2,.8,.2,1), transform .5s cubic-bezier(.2,.8,.2,1);
+  will-change: transform, opacity;
+}
+.cta-name.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ============ Parallax ============ */
 .parallax-bg {
   position: absolute;
@@ -433,6 +449,22 @@ body:hover .glow-cursor { opacity: 1; }
 .tl-cursor { display: inline-block; color: var(--orange); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
+/* ============ Page scrollbar ============ */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,106,31,.5) transparent;
+}
+html::-webkit-scrollbar { width: 8px; }
+html::-webkit-scrollbar-track { background: rgba(10,6,4,.4); }
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--orange-glow), var(--orange));
+  border-radius: 4px;
+  border: 1px solid rgba(10,6,4,.6);
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--orange-hot), var(--orange-glow));
+}
+
 /* ============ Track scrollbar ============ */
 .track {
   scrollbar-width: thin;
@@ -447,3 +479,4 @@ body:hover .glow-cursor { opacity: 1; }
   pointer-events: none; z-index: 99;
   background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.5) 100%);
 }
+

@@ -4,33 +4,31 @@ export default function ChapterI() {
       className="chapter-i relative max-w-[1400px] mx-auto"
       style={{ padding: 'clamp(80px, 18vh, 200px) clamp(24px, 5vw, 80px)' }}
     >
-      <div className="reveal chapter-tag font-mono text-[11px] uppercase tracking-[0.3em] text-orange mb-10 inline-flex items-center gap-3.5">
-        Chapitre I · Ce que je fais
-      </div>
-      <h2
-        className="reveal delay-1 font-serif font-normal text-white max-w-[18ch] mb-12"
-        style={{
-          fontSize: 'clamp(40px, 6vw, 92px)',
-          lineHeight: 1,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        <span className="whitespace-nowrap">Je suis développeur <em className="italic text-orange-hot">full-stack</em>.</span><br />J'aime peaufiner une interface, concevoir une <em className="italic text-orange-hot">API</em>, orchestrer un <em className="italic text-orange-hot">déploiement</em>.
-      </h2>
-      <p
-        className="reveal delay-2 font-serif max-w-[32ch] text-cream/85"
-        style={{ fontSize: 'clamp(22px, 2.2vw, 34px)', lineHeight: 1.4 }}
-      >
-        À travers les projets <em className="italic text-orange-hot">d'école</em> et
-        l'<em className="italic text-orange-hot">alternance</em>, j'ai appris à intervenir
-        sur toutes les couches d'un projet.
-      </p>
+      <div className="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20 items-start">
+        <div className="md:sticky md:top-32">
+          <div className="reveal chapter-tag font-mono text-[11px] uppercase tracking-[0.3em] text-orange mb-8 inline-flex items-center gap-3.5">
+            <span className="w-[30px] h-px bg-orange" />
+            Chapitre II · Le métier
+          </div>
+          <h2
+            className="reveal delay-1 font-serif font-normal text-white mb-6"
+            style={{ fontSize: 'clamp(40px, 5vw, 76px)', lineHeight: 1, letterSpacing: '-0.025em' }}
+          >
+            Mon <em className="italic text-orange-hot">métier</em>.
+          </h2>
+          <p className="reveal delay-2 font-mono text-xs uppercase tracking-[0.22em] text-cream/55 leading-relaxed">
+            Développeur full-stack
+            <br />
+            React · Laravel · DevOps
+          </p>
+        </div>
 
-      <div className="reveal delay-3 mt-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-[1200px]">
-        <TechCol label="Frontend" items={['React · TypeScript', 'CSS · Tailwind', 'Responsive design', 'Accessibilité']} />
-        <TechCol label="Backend" items={['PHP · Laravel', 'Ruby · Rails', 'API REST', 'PostgreSQL · MySQL']} />
-        <TechCol label="DevOps" items={['Docker · CI/CD', 'VPS', 'Monitoring', 'Tests automatisés']} />
-        <TechCol label="Outils" items={['Git & review', 'Figma & design', 'VS Code · JetBrains', 'Notion · Jira']} />
+        <div className="reveal delay-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <TechCol label="Frontend" items={['React · TypeScript', 'CSS · Tailwind', 'Responsive design', 'Accessibilité']} />
+          <TechCol label="Backend" items={['PHP · Laravel', 'Ruby · Rails', 'API REST', 'PostgreSQL · MySQL']} />
+          <TechCol label="DevOps" items={['Docker · CI/CD', 'VPS', 'Monitoring', 'Tests automatisés']} />
+          <TechCol label="Outils" items={['Git & review', 'Figma & design', 'Claude Code', 'Notion · Jira']} />
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+const STAR_COUNT = 70;
+
 export default function StarfieldCanvas({ heroId = 'hero' }: { heroId?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -8,7 +10,7 @@ export default function StarfieldCanvas({ heroId = 'hero' }: { heroId?: string }
     if (!canvas) return;
     const hero = document.getElementById(heroId);
     if (!hero) return;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d', { alpha: true })!;
 
     let w = 0;
     let h = 0;
@@ -19,7 +21,7 @@ export default function StarfieldCanvas({ heroId = 'hero' }: { heroId?: string }
       w = canvas!.width = hero!.offsetWidth;
       h = canvas!.height = hero!.offsetHeight;
       stars = [];
-      for (let i = 0; i < 140; i++) {
+      for (let i = 0; i < STAR_COUNT; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h * 0.6,
@@ -33,6 +35,9 @@ export default function StarfieldCanvas({ heroId = 'hero' }: { heroId?: string }
     resize();
 
     let raf = 0;
+    let visible = true;
+    let pageVisible = !document.hidden;
+
     function tick() {
       ctx.clearRect(0, 0, w, h);
       for (const s of stars) {
@@ -45,12 +50,42 @@ export default function StarfieldCanvas({ heroId = 'hero' }: { heroId?: string }
       }
       raf = requestAnimationFrame(tick);
     }
-    raf = requestAnimationFrame(tick);
+
+    function start() {
+      if (raf || !visible || !pageVisible) return;
+      raf = requestAnimationFrame(tick);
+    }
+    function stop() {
+      if (!raf) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0]?.isIntersecting ?? true;
+        if (visible) start();
+        else stop();
+      },
+      { rootMargin: '100px' },
+    );
+    io.observe(hero);
+
+    function onVisibilityChange() {
+      pageVisible = !document.hidden;
+      if (pageVisible) start();
+      else stop();
+    }
+
+    start();
     window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      io.disconnect();
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [heroId]);
 

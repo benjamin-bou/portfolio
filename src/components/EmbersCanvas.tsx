@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
 
+const PARTICLE_COUNT = 28;
+
 export default function EmbersCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d', { alpha: true })!;
 
     let w = 0;
     let h = 0;
@@ -32,13 +34,15 @@ export default function EmbersCanvas() {
     }
 
     resize();
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
       const p = makeParticle();
       p.y = Math.random() * h;
       particles.push(p);
     }
 
     let raf = 0;
+    let running = !document.hidden;
+
     function tick() {
       ctx.clearRect(0, 0, w, h);
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -46,24 +50,44 @@ export default function EmbersCanvas() {
         p.x += p.vx + Math.sin(p.life * 0.01) * 0.2;
         p.y += p.vy;
         p.life++;
-        const a = Math.max(0, 1 - p.life / p.max) * 0.8;
+        const a = Math.max(0, 1 - p.life / p.max) * 0.7;
+        // Soft glow via radial gradient (cheaper than shadowBlur over many particles)
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+        glow.addColorStop(0, `hsla(${p.hue}, 90%, 65%, ${a})`);
+        glow.addColorStop(1, `hsla(${p.hue}, 90%, 65%, 0)`);
+        ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, ${a})`;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = `hsla(${p.hue}, 90%, 60%, ${a})`;
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
         ctx.fill();
         if (p.life > p.max || p.y < -20) particles[i] = makeParticle();
       }
-      ctx.shadowBlur = 0;
       raf = requestAnimationFrame(tick);
     }
-    raf = requestAnimationFrame(tick);
+
+    function start() {
+      if (raf || !running) return;
+      raf = requestAnimationFrame(tick);
+    }
+    function stop() {
+      if (!raf) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+
+    function onVisibilityChange() {
+      running = !document.hidden;
+      if (running) start();
+      else stop();
+    }
+
+    start();
     window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, []);
 
