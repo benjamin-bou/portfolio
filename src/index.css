@@ -1,68 +1,15 @@
 @import "tailwindcss";
-@import "./styles/portfolio.css";
-
-@theme {
-  --color-deep: #0a0604;
-  --color-ember: #1a0a06;
-  --color-cream: #f3e8d8;
-  --color-orange: #ff6a1f;
-  --color-orange-hot: #ffb057;
-  --color-orange-glow: #ffd28a;
-  --color-muted: #8a7c70;
-
-  --font-serif: "Instrument Serif", serif;
-  --font-mono: "JetBrains Mono", monospace;
-}
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: var(--color-deep);
-  color: var(--color-cream);
-  font-family: var(--font-mono);
+  margin: 0;
+  background: #2E2820;
+  color: #F0E7D4;
+  font-family: "JetBrains Mono", monospace;
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-}
-
-/* Journey3D narration sidebar — active step highlighted, others dimmed */
-.narration-sidebar .narration-step {
-  opacity: 0.32;
-  filter: blur(0.4px);
-}
-.narration-sidebar .step-bullet {
-  background: rgba(243, 232, 216, 0.4);
-  transform: scale(0.7);
-}
-.narration-sidebar .step-tag {
-  color: rgba(243, 232, 216, 0.55);
-}
-.narration-sidebar .step-body {
-  color: rgba(243, 232, 216, 0.55);
-}
-
-.narration-sidebar[data-active="1"] [data-step="1"],
-.narration-sidebar[data-active="2"] [data-step="2"],
-.narration-sidebar[data-active="3"] [data-step="3"] {
-  opacity: 1;
-  filter: none;
-}
-.narration-sidebar[data-active="1"] [data-step="1"] .step-bullet,
-.narration-sidebar[data-active="2"] [data-step="2"] .step-bullet,
-.narration-sidebar[data-active="3"] [data-step="3"] .step-bullet {
-  background: var(--color-orange);
-  transform: scale(1);
-  box-shadow: 0 0 12px var(--color-orange-hot), 0 0 4px var(--color-orange);
-}
-.narration-sidebar[data-active="1"] [data-step="1"] .step-tag,
-.narration-sidebar[data-active="2"] [data-step="2"] .step-tag,
-.narration-sidebar[data-active="3"] [data-step="3"] .step-tag {
-  color: var(--color-orange-hot);
-}
-.narration-sidebar[data-active="1"] [data-step="1"] .step-body,
-.narration-sidebar[data-active="2"] [data-step="2"] .step-body,
-.narration-sidebar[data-active="3"] [data-step="3"] .step-body {
-  color: #ffffff;
 }

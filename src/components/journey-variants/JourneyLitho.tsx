@@ -2,8 +2,8 @@ import { useRef } from 'react';
 import { STOPS } from './data';
 import { useScrollProgress } from './useScrollProgress';
 
-const SKY_TINT = '#F3B775';
-const SUN = '#C53A2C';
+const SKY_TINT = '#E2D6BD';
+const SUN = '#E27A2E';
 const INK = '#1A1612';
 const CREAM = '#F8F1E1';
 
@@ -79,7 +79,7 @@ export default function JourneyLitho() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(180deg, ${SKY_TINT} 0%, ${SKY_TINT}cc 45%, #8c5a32cc 100%)`,
+            background: `linear-gradient(180deg, ${SKY_TINT} 0%, ${SKY_TINT}cc 45%, #3e3530cc 100%)`,
             mixBlendMode: 'multiply',
           }}
         />
@@ -127,7 +127,7 @@ export default function JourneyLitho() {
             <span>Chapitre IV</span>
             <span style={{ opacity: 0.6 }}>· Parcours</span>
           </span>
-          <span style={{ letterSpacing: '0.4em', opacity: 0.85 }}>P · L · M &nbsp;·&nbsp; MMXXVI</span>
+          <span style={{ letterSpacing: '0.4em', opacity: 0.85 }}>2021 — 2026</span>
         </div>
 
         {/* HEADING — large affiche-style overlay, top-left */}
@@ -331,7 +331,7 @@ export default function JourneyLitho() {
         <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
           style={{
-            background: `linear-gradient(180deg, ${SKY_TINT} 0%, ${SKY_TINT}f0 60%, ${SKY_TINT}00 100%)`,
+            background: `linear-gradient(180deg, #1B1815 0%, rgba(27,24,21,0.92) 60%, rgba(27,24,21,0) 100%)`,
             opacity: 1 - introOut,
             transition: 'opacity 0.12s linear',
           }}
@@ -344,7 +344,7 @@ export default function JourneyLitho() {
                 fontSize: 'clamp(56px, 9vw, 140px)',
                 lineHeight: 0.88,
                 letterSpacing: '-0.03em',
-                color: INK,
+                color: CREAM,
                 margin: 0,
                 textTransform: 'uppercase',
               }}
@@ -358,7 +358,7 @@ export default function JourneyLitho() {
                 fontSize: 10,
                 letterSpacing: '0.28em',
                 textTransform: 'uppercase',
-                color: 'rgba(26,22,18,0.6)',
+                color: 'rgba(240,231,212,0.55)',
               }}
             >
               ↓ continuez — la voie se trace
