@@ -1,4 +1,5 @@
-import { TOK, FONT, TEXTURES } from './tokens';
+import { TOK, FONT, TYPE, TEXTURES, LAYOUT } from './tokens';
+import { Kicker, Dot } from './primitives';
 
 const ABOUT_PHOTO = '/images/about.jpg';
 
@@ -6,52 +7,28 @@ export default function LithoAbout() {
   return (
     <section
       id="about"
+      className="litho-section"
       style={{
         position: 'relative',
-        background: TOK.dark,
+        background: TOK.bg,
         color: TOK.cream,
-        padding: 'clamp(80px, 14vh, 160px) clamp(24px, 5vw, 80px)',
+        padding: LAYOUT.sectionPad,
         overflow: 'hidden',
       }}
     >
-      {/* Grain texture for litho feel */}
+      {/* Grain texture for litho feel — sans blend (perf) */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background: TEXTURES.grain,
-          mixBlendMode: 'multiply',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Soft warm gradient hint */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(226,122,46,0.08) 0%, transparent 60%)',
+          opacity: 0.6,
           pointerEvents: 'none',
         }}
       />
 
-      <div style={{ position: 'relative', maxWidth: 1400, margin: '0 auto' }}>
-        {/* Kicker */}
-        <div
-          style={{
-            fontFamily: FONT.mono,
-            fontSize: 11,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: TOK.sun,
-            marginBottom: 36,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 14,
-          }}
-        >
-          <span style={{ width: 28, height: 1, background: TOK.sun }} />
-          Chapitre I · Présentation
-        </div>
+      <div style={{ position: 'relative', maxWidth: LAYOUT.maxW, margin: '0 auto' }}>
+        <Kicker style={{ marginBottom: 36 }}>Chapitre I · Présentation</Kicker>
 
         <div
           style={{
@@ -64,32 +41,18 @@ export default function LithoAbout() {
         >
           {/* LEFT — heading + body */}
           <div>
-            <h2
-              style={{
-                fontFamily: FONT.display,
-                fontWeight: 800,
-                fontSize: 'clamp(48px, 7vw, 112px)',
-                lineHeight: 0.92,
-                letterSpacing: '-0.025em',
-                color: TOK.cream,
-                margin: '0 0 40px',
-                textTransform: 'uppercase',
-                maxWidth: '14ch',
-              }}
-            >
+            <h2 style={{ ...TYPE.h2, margin: '0 0 40px', maxWidth: '14ch' }}>
               Développeur,
               <br />
-              <span style={{ color: TOK.sun }}>coureur,</span>
+              coureur,
               <br />
-              <span style={{ color: TOK.sun }}>randonneur.</span>
+              randonneur
+              <Dot />
             </h2>
 
             <div
               style={{
-                fontFamily: FONT.serif,
-                fontSize: 'clamp(18px, 1.5vw, 22px)',
-                lineHeight: 1.55,
-                color: 'rgba(240,231,212,0.82)',
+                ...TYPE.body,
                 maxWidth: '54ch',
                 display: 'flex',
                 flexDirection: 'column',
@@ -97,22 +60,21 @@ export default function LithoAbout() {
               }}
             >
               <p style={{ margin: 0 }}>
-                Je m'appelle <em style={{ fontStyle: 'italic', color: TOK.sun }}>Benjamin</em>, j'ai 23 ans. Je
-                suis en alternance depuis <em style={{ fontStyle: 'italic', color: TOK.sun }}>septembre 2024</em>
-                , à <em style={{ fontStyle: 'italic', color: TOK.sun }}>Epitech Rennes</em> côté école et chez{' '}
-                <em style={{ fontStyle: 'italic', color: TOK.sun }}>Spayr</em> à Paris depuis septembre 2025.
+                Je m'appelle <em>Benjamin</em>, j'ai 23 ans. Je suis en alternance depuis{' '}
+                <em>septembre 2024</em>, à <em>Epitech Rennes</em> côté école et chez <em>Spayr</em> à Paris
+                depuis septembre 2025.
               </p>
               <p style={{ margin: 0 }}>
-                J'aime essayer des trucs — un nouvel outil, un side-project le week-end, un format que je n'ai
-                jamais touché. Bricoler avec des nouveaux outils, tester des nouveaux projets avec l'IA.
+                J'aime essayer de nouvelles choses, un nouvel outil, un side-project, un nouveau langage.
+                Bricoler avec des nouveaux outils, tester des nouveaux projets avec l'IA.
               </p>
               <p style={{ margin: 0 }}>
-                À côté je cours environ 4 sorties par semaine. J'ai déjà fini plusieurs semi-marathons et je
-                prépare mon premier marathon pour l'été 2026.
+                J'aime beaucoup la course à pied ! Je cours plusieurs fois par semaine et j'ai déjà fini
+                plusieurs semi-marathons.
               </p>
               <p style={{ margin: 0 }}>
-                J'aime aussi voyager et changer de décor dès que je peux — un week-end à l'autre bout de la
-                France, un voyage improvisé avec mes amis. C'est dans ces moments-là que je recharge vraiment.
+                J'aime aussi changer de décor, une randonnée en Bretagne, ou un voyage improvisé avec mes
+                amis. C'est dans ces moments-là que je recharge vraiment.
               </p>
             </div>
           </div>
@@ -123,39 +85,37 @@ export default function LithoAbout() {
               style={{
                 position: 'relative',
                 margin: 0,
-                overflow: 'hidden',
-                aspectRatio: '4 / 5',
-                border: `1px solid ${TOK.ink}40`,
-                boxShadow: '0 28px 60px rgba(26,18,9,0.45), 0 0 30px rgba(226,122,46,0.08)',
+                padding: 10,
+                background: TOK.cream,
+                transform: 'rotate(-0.8deg)',
+                boxShadow: '0 24px 60px rgba(20, 16, 10, 0.5)',
               }}
             >
               <img
                 src={ABOUT_PHOTO}
-                alt="Sentier de montagne au coucher du soleil"
+                alt="Benjamin en randonnée à Quiberon"
                 style={{
                   width: '100%',
-                  height: '100%',
+                  aspectRatio: '4 / 5',
                   display: 'block',
                   objectFit: 'cover',
-                  filter: 'saturate(1.05) contrast(1.05)',
                 }}
               />
-              {/* Peach multiply — unifies with section palette */}
+              {/* Dégradé bas — lisibilité de la légende, sans teinter la photo */}
               <div
                 style={{
                   position: 'absolute',
-                  inset: 0,
-                  background: `linear-gradient(180deg, ${TOK.peach}aa 0%, transparent 30%, rgba(26,18,9,0.7) 100%)`,
-                  mixBlendMode: 'multiply',
+                  inset: 10,
+                  background: 'linear-gradient(180deg, transparent 55%, rgba(24, 19, 13, 0.72) 100%)',
                   pointerEvents: 'none',
                 }}
               />
               <figcaption
                 style={{
                   position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
+                  bottom: 10,
+                  left: 10,
+                  right: 10,
                   padding: 22,
                   color: TOK.cream,
                   zIndex: 1,
@@ -167,7 +127,7 @@ export default function LithoAbout() {
                     fontSize: 10,
                     letterSpacing: '0.32em',
                     textTransform: 'uppercase',
-                    color: TOK.peach,
+                    color: TOK.sun,
                     marginBottom: 6,
                   }}
                 >
@@ -190,20 +150,16 @@ export default function LithoAbout() {
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {[
                 <>
-                  Alternant <em style={{ fontStyle: 'italic', color: TOK.sun }}>développeur full-stack</em> chez
-                  Spayr, à Paris.
+                  Alternant <em>développeur full-stack</em> chez Spayr, à Paris.
                 </>,
                 <>
-                  En <em style={{ fontStyle: 'italic', color: TOK.sun }}>Master of Science</em> à Epitech Rennes,
-                  parcours administrateur SI.
+                  En <em>Master of Science</em> à Epitech Rennes, parcours administrateur SI.
                 </>,
                 <>
-                  Curieux des outils et de l'<em style={{ fontStyle: 'italic', color: TOK.sun }}>IA appliquée</em>{' '}
-                  au produit.
+                  Curieux des outils et de l'<em>IA appliquée</em> au produit.
                 </>,
                 <>
-                  Hors écran : <em style={{ fontStyle: 'italic', color: TOK.sun }}>course à pied</em> et{' '}
-                  <em style={{ fontStyle: 'italic', color: TOK.sun }}>randonnée</em> longue distance.
+                  Hors écran : <em>course à pied</em> et <em>randonnée</em>.
                 </>,
               ].map((item, i, arr) => (
                 <li
@@ -215,10 +171,10 @@ export default function LithoAbout() {
                     fontFamily: FONT.serif,
                     fontSize: 18,
                     lineHeight: 1.45,
-                    color: TOK.cream,
+                    color: TOK.creamSoft,
                     paddingTop: i === 0 ? 0 : 16,
                     paddingBottom: i === arr.length - 1 ? 0 : 16,
-                    borderBottom: i === arr.length - 1 ? 'none' : `1px solid ${TOK.cream}1f`,
+                    borderBottom: i === arr.length - 1 ? 'none' : `1px solid ${TOK.lineSoft}`,
                   }}
                 >
                   <span

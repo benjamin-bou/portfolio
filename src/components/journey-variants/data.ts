@@ -9,6 +9,7 @@ export type Stop = {
   type: StopType;
   altitude: number;
   desc: string;
+  city: string;
   ongoing?: boolean;
   side: 'left' | 'right';
 };
@@ -23,6 +24,7 @@ export const STOPS: Stop[] = [
     type: 'edu',
     altitude: 1430,
     desc: 'Algorithmique, systèmes, fondations.',
+    city: 'Caen',
     side: 'left',
   },
   {
@@ -34,6 +36,7 @@ export const STOPS: Stop[] = [
     type: 'edu',
     altitude: 1850,
     desc: "L'année où j'ai commencé à me sentir développeur.",
+    city: 'Rennes',
     side: 'left',
   },
   {
@@ -45,6 +48,7 @@ export const STOPS: Stop[] = [
     type: 'work',
     altitude: 2317,
     desc: 'Première alternance. Le vrai rythme du métier.',
+    city: 'Rennes',
     side: 'right',
   },
   {
@@ -56,6 +60,7 @@ export const STOPS: Stop[] = [
     type: 'edu',
     altitude: 2372,
     desc: 'Master en cours.',
+    city: 'Rennes',
     ongoing: true,
     side: 'left',
   },
@@ -68,6 +73,7 @@ export const STOPS: Stop[] = [
     type: 'work',
     altitude: 3050,
     desc: "Développement produit en startup.",
+    city: 'Télétravail',
     ongoing: true,
     side: 'right',
   },

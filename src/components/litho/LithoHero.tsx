@@ -1,8 +1,11 @@
-import { TOK, FONT, TEXTURES } from './tokens';
+import { TOK, FONT, TEXTURES, LAYOUT } from './tokens';
+import { Dot } from './primitives';
 
-const HERO_PHOTO =
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2400&q=85';
-
+/**
+ * Hero — affiche typographique pure, sans photo.
+ * L'identité litho porte seule : fond sombre chaud dégradé, grain halftone,
+ * marque solaire (anneau + disque, reprise en clôture du CTA), titre géant.
+ */
 export default function LithoHero() {
   return (
     <section
@@ -15,122 +18,100 @@ export default function LithoHero() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        padding: 'clamp(110px, 16vh, 150px) clamp(24px, 5vw, 80px) clamp(50px, 8vh, 100px)',
-        background: TOK.dark,
+        padding: `clamp(110px, 16vh, 150px) ${LAYOUT.padX} clamp(44px, 7vh, 90px)`,
+        background: `linear-gradient(180deg, ${TOK.bg} 0%, ${TOK.bg} 55%, ${TOK.bgDeep} 100%)`,
       }}
     >
-      {/* Photo background */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${HERO_PHOTO})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 40%',
-          opacity: 0.9,
-        }}
-      />
-      {/* Peach multiply for palette unity */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `linear-gradient(180deg, ${TOK.peach} 0%, ${TOK.peach}cc 40%, #3e3530cc 100%)`,
-          mixBlendMode: 'multiply',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Warm screen highlight pull */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, rgba(232,220,196,0.18) 0%, transparent 60%)',
-          mixBlendMode: 'screen',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Sun disk — graphic flourish, top-right */}
+      {/* Halo chaud très doux derrière la marque solaire */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
-          top: 'clamp(80px, 14vh, 180px)',
-          right: 'clamp(-80px, -6vw, -40px)',
-          width: 'clamp(280px, 36vw, 540px)',
-          height: 'clamp(280px, 36vw, 540px)',
+          top: '-10%',
+          right: '-12%',
+          width: 'clamp(480px, 55vw, 900px)',
+          aspectRatio: '1 / 1',
           borderRadius: '50%',
-          background: TOK.sun,
-          opacity: 0.85,
+          background: 'radial-gradient(circle, rgba(226, 122, 46, 0.16) 0%, transparent 62%)',
           pointerEvents: 'none',
         }}
       />
-      {/* Grain */}
+      {/* Marque solaire — anneau fin + disque, motif repris en clôture (CTA) */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: 'clamp(96px, 15vh, 180px)',
+          right: 'clamp(24px, 6vw, 96px)',
+          width: 'clamp(190px, 24vw, 340px)',
+          aspectRatio: '1 / 1',
+          borderRadius: '50%',
+          border: '1px solid rgba(240, 231, 212, 0.35)',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: '15%',
+            left: '23%',
+            width: '54%',
+            height: '54%',
+            borderRadius: '50%',
+            background: TOK.sun,
+            opacity: 0.94,
+          }}
+        />
+      </div>
+      {/* Grain — sans mix-blend-mode (perf : calque cacheable, pas de re-blend au scroll) */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background: TEXTURES.grain,
-          mixBlendMode: 'multiply',
-          opacity: 0.8,
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Bottom vignette for legibility */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, transparent 40%, rgba(26,18,9,0.55) 100%)',
+          opacity: 0.6,
           pointerEvents: 'none',
         }}
       />
 
       {/* CONTENT */}
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: LAYOUT.maxW, margin: '0 auto', width: '100%' }}>
         <h1
           style={{
             fontFamily: FONT.display,
             fontWeight: 800,
-            fontSize: 'clamp(64px, 11vw, 200px)',
-            lineHeight: 0.86,
-            letterSpacing: '-0.035em',
+            fontSize: 'clamp(60px, 10vw, 176px)',
+            lineHeight: 0.87,
+            letterSpacing: '-0.03em',
             textTransform: 'uppercase',
             color: TOK.cream,
             margin: 0,
-            textShadow: '0 4px 32px rgba(26,18,9,0.4)',
           }}
         >
           Benjamin
-          <br />
-          <span style={{ color: TOK.sun }}>Boutrois.</span>
+          <span style={{ display: 'block', marginLeft: '0.55em' }}>
+            Boutrois
+            <Dot />
+          </span>
         </h1>
 
         <div
           style={{
-            marginTop: 28,
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '12px 22px',
-            fontFamily: FONT.mono,
-            fontSize: 12,
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
+            marginTop: 40,
+            paddingTop: 24,
+            borderTop: `1px solid ${TOK.line}`,
+            fontFamily: FONT.serif,
+            fontStyle: 'italic',
+            fontSize: 'clamp(18px, 1.6vw, 23px)',
+            lineHeight: 1.5,
             color: TOK.cream,
-            opacity: 0.88,
+            opacity: 0.92,
+            maxWidth: '52ch',
           }}
         >
-          <span style={{ fontFamily: FONT.serif, fontStyle: 'italic', textTransform: 'none', letterSpacing: 0, fontSize: 22 }}>
-            Développeur full-stack
-          </span>
-          <span style={{ opacity: 0.5 }}>—</span>
-          <span>Epitech · Rennes</span>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span>Spayr · Paris</span>
+          Développeur full-stack — en master à Epitech Rennes, en alternance chez Spayr à Paris.
         </div>
       </div>
-
     </section>
   );
 }

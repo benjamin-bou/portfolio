@@ -2,14 +2,61 @@
 
 html {
   scroll-behavior: smooth;
+  /* Scrollbar litho — Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(240, 231, 212, 0.28) #262119;
 }
 
 body {
   margin: 0;
-  background: #2E2820;
+  background: #262119;
   color: #F0E7D4;
   font-family: "JetBrains Mono", monospace;
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* clip (et pas hidden) : hidden promeut overflow-y en `auto` et fait du body
+     le conteneur de scroll → scroll sur le thread principal (saccades) et
+     window.scrollTo cassé. clip découpe le débordement horizontal sans créer
+     de scroll-port : le viewport (documentElement) reste le scroller composité. */
+  overflow-x: clip;
+}
+
+/* Scrollbar litho — WebKit : fine, discrète, accent au survol */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+}
+::-webkit-scrollbar-track {
+  background: #262119;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(240, 231, 212, 0.22);
+  border-radius: 999px;
+  border: 3px solid #262119;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #E27A2E;
+}
+
+/* Sections éditoriales (Présentation, Le métier…) — le padding vertical du
+   design system (14vh ≈ 110-120px) laisse un trop grand vide au-dessus des
+   titres sur mobile. On resserre. !important pour battre le style inline. */
+@media (max-width: 700px) {
+  .litho-section {
+    padding-top: 54px !important;
+    padding-bottom: 72px !important;
+  }
+}
+
+::selection {
+  background: #E27A2E;
+  color: #262119;
+}
+
+:focus-visible {
+  outline: 2px solid #E27A2E;
+  outline-offset: 3px;
 }

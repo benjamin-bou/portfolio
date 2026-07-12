@@ -1,4 +1,5 @@
-import { TOK, FONT, TEXTURES } from './tokens';
+import { TOK, FONT, TEXTURES, LAYOUT } from './tokens';
+import { Kicker, Dot, InfoBlock } from './primitives';
 
 export default function LithoCTA() {
   return (
@@ -6,75 +7,58 @@ export default function LithoCTA() {
       id="contact"
       style={{
         position: 'relative',
-        background: TOK.dark,
+        background: TOK.bgDeep,
         color: TOK.cream,
-        padding: 'clamp(100px, 18vh, 200px) clamp(24px, 5vw, 80px) clamp(80px, 12vh, 140px)',
+        padding: `clamp(100px, 18vh, 200px) ${LAYOUT.padX} clamp(80px, 12vh, 140px)`,
         overflow: 'hidden',
       }}
     >
-      {/* Grain */}
+      {/* Grain — sans blend (perf) */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background: TEXTURES.grain,
-          mixBlendMode: 'soft-light',
-          opacity: 0.7,
+          opacity: 0.5,
           pointerEvents: 'none',
         }}
       />
-      {/* Bottom-right sun disk — closing flourish */}
+      {/* Marque solaire de clôture — écho du hero */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
-          bottom: -200,
-          right: -120,
-          width: 'clamp(280px, 32vw, 520px)',
-          height: 'clamp(280px, 32vw, 520px)',
-          borderRadius: '50%',
-          background: TOK.sun,
-          opacity: 0.18,
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          bottom: -260,
-          right: -180,
+          bottom: -220,
+          right: -140,
           width: 'clamp(360px, 40vw, 640px)',
           height: 'clamp(360px, 40vw, 640px)',
           borderRadius: '50%',
-          border: `1px solid ${TOK.sun}33`,
+          border: `1px solid ${TOK.line}`,
           pointerEvents: 'none',
         }}
-      />
-
-      <div style={{ position: 'relative', maxWidth: 1200, margin: '0 auto' }}>
+      >
         <div
           style={{
-            fontFamily: FONT.mono,
-            fontSize: 11,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: TOK.sun,
-            marginBottom: 36,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 14,
+            position: 'absolute',
+            top: '12%',
+            left: '20%',
+            width: '56%',
+            height: '56%',
+            borderRadius: '50%',
+            background: TOK.sun,
+            opacity: 0.16,
           }}
-        >
-          <span style={{ width: 28, height: 1, background: TOK.sun }} />
-          Fin de la trace
-        </div>
+        />
+      </div>
+
+      <div style={{ position: 'relative', maxWidth: LAYOUT.maxW, margin: '0 auto' }}>
+        <Kicker style={{ marginBottom: 36 }}>Contact</Kicker>
 
         <h2
           style={{
             fontFamily: FONT.display,
             fontWeight: 800,
-            fontSize: 'clamp(56px, 9vw, 140px)',
+            fontSize: 'clamp(56px, 8vw, 120px)',
             lineHeight: 0.88,
             letterSpacing: '-0.03em',
             color: TOK.cream,
@@ -82,9 +66,8 @@ export default function LithoCTA() {
             textTransform: 'uppercase',
           }}
         >
-          Benjamin
-          <br />
-          <span style={{ color: TOK.sun }}>Boutrois.</span>
+          Discutons
+          <Dot />
         </h2>
 
         {/* École / Alternance grid */}
@@ -98,16 +81,8 @@ export default function LithoCTA() {
             maxWidth: 720,
           }}
         >
-          <Block
-            kicker="École"
-            title="Master of science · Epitech"
-            sub="Rennes"
-          />
-          <Block
-            kicker="Alternance"
-            title="Full-stack · Spayr"
-            sub="Paris"
-          />
+          <InfoBlock label="École" title="Master of Science · Epitech" sub="Rennes" />
+          <InfoBlock label="Alternance" title="Full-stack · Spayr" sub="Paris" />
         </div>
 
         {/* Buttons */}
@@ -116,17 +91,34 @@ export default function LithoCTA() {
           style={{
             marginTop: 56,
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 14,
-            maxWidth: 720,
+            maxWidth: 900,
           }}
         >
-          <LithoButton href="https://github.com/benjamin-bou" label="GitHub" />
-          <LithoButton href="https://www.linkedin.com/in/benjamin-boutrois-2640462b0/" label="LinkedIn" />
+          <LithoButton href="mailto:benjaminboutrois04@gmail.com" label="Email" arrow="→" />
+          <LithoButton href="https://github.com/benjamin-bou" label="GitHub" arrow="↗" external />
+          <LithoButton
+            href="https://www.linkedin.com/in/benjamin-boutrois-2640462b0/"
+            label="LinkedIn"
+            arrow="↗"
+            external
+          />
         </div>
       </div>
 
       <style>{`
+        .litho-cta-btn {
+          border: 1px solid ${TOK.line};
+          transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .litho-cta-btn:hover {
+          border-color: ${TOK.sun};
+          background: ${TOK.sunSoft};
+        }
+        .litho-cta-btn:hover .litho-cta-arrow {
+          color: ${TOK.sun};
+        }
         @media (max-width: 700px) {
           .litho-cta-grid { grid-template-columns: 1fr !important; }
           .litho-cta-buttons { grid-template-columns: 1fr !important; }
@@ -136,92 +128,47 @@ export default function LithoCTA() {
   );
 }
 
-function Block({ kicker, title, sub }: { kicker: string; title: string; sub: string }) {
-  return (
-    <div>
-      <div
-        style={{
-          fontFamily: FONT.mono,
-          fontSize: 10,
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          color: TOK.mutedCream,
-          marginBottom: 8,
-        }}
-      >
-        {kicker}
-      </div>
-      <div
-        style={{
-          fontFamily: FONT.serif,
-          fontSize: 22,
-          color: TOK.cream,
-          lineHeight: 1.25,
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          fontFamily: FONT.mono,
-          fontSize: 11,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: TOK.mutedCream,
-          marginTop: 4,
-        }}
-      >
-        {sub}
-      </div>
-    </div>
-  );
-}
-
-function LithoButton({ href, label }: { href: string; label: string }) {
+function LithoButton({
+  href,
+  label,
+  arrow,
+  external,
+}: {
+  href: string;
+  label: string;
+  arrow: string;
+  external?: boolean;
+}) {
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
+      className="litho-cta-btn"
+      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
       style={{
-        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '22px 24px',
-        border: `1px solid rgba(248,241,225,0.18)`,
         textDecoration: 'none',
         color: TOK.cream,
         fontFamily: FONT.mono,
         fontSize: 12,
         letterSpacing: '0.28em',
         textTransform: 'uppercase',
-        transition: 'border-color 0.2s, color 0.2s',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = TOK.sun;
-        e.currentTarget.style.color = TOK.cream;
-        const arrow = e.currentTarget.querySelector('.arrow') as HTMLElement;
-        if (arrow) arrow.style.color = TOK.sun;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(248,241,225,0.18)';
-        const arrow = e.currentTarget.querySelector('.arrow') as HTMLElement;
-        if (arrow) arrow.style.color = TOK.cream;
       }}
     >
       <span>{label}</span>
       <span
-        className="arrow"
+        className="litho-cta-arrow"
         style={{
           fontFamily: FONT.serif,
           fontStyle: 'italic',
           fontSize: 18,
-          color: TOK.cream,
-          transition: 'color 0.2s',
+          color: TOK.creamMuted,
+          transition: 'color 0.2s ease',
         }}
       >
-        ↗
+        {arrow}
       </span>
     </a>
   );

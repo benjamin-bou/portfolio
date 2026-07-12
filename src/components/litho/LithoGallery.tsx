@@ -1,6 +1,17 @@
-import { TOK, FONT, TEXTURES } from './tokens';
+import { TOK, FONT, TYPE, TEXTURES, LAYOUT } from './tokens';
+import { Kicker, Dot } from './primitives';
 
-const PROJECTS = [
+type Project = {
+  idx: string;
+  org: string;
+  title: string;
+  sub: string;
+  meta: string;
+  tags: string[];
+  ongoing?: boolean;
+};
+
+const PROJECTS: Project[] = [
   {
     idx: '01',
     org: 'Alternance · Spayr',
@@ -8,8 +19,6 @@ const PROJECTS = [
     sub: 'en startup',
     meta: 'En cours · 2025',
     tags: ['React', 'TypeScript', 'Node'],
-    bg: TOK.sun,
-    ink: TOK.cream,
     ongoing: true,
   },
   {
@@ -19,8 +28,6 @@ const PROJECTS = [
     sub: 'métier',
     meta: '2024 — 2025',
     tags: ['React', 'API REST', 'UX'],
-    bg: TOK.cool, // slate — breaks the warm monochrome
-    ink: TOK.cream,
   },
   {
     idx: '03',
@@ -29,18 +36,14 @@ const PROJECTS = [
     sub: 'full-stack',
     meta: 'Epitech · 2025',
     tags: ['Next.js', 'Postgres', 'Auth'],
-    bg: TOK.peach,
-    ink: TOK.dark,
   },
   {
     idx: '04',
     org: 'Projet perso',
-    title: 'Ce portfolio,',
-    sub: 'fait main',
+    title: 'Ce portfolio',
+    sub: '',
     meta: '2026 · ici même',
-    tags: ['React', 'Three.js', 'GSAP'],
-    bg: TOK.dark,
-    ink: TOK.cream,
+    tags: ['React', 'TypeScript', 'SVG'],
   },
 ];
 
@@ -50,9 +53,9 @@ export default function LithoGallery() {
       id="work"
       style={{
         position: 'relative',
-        background: TOK.dark,
+        background: TOK.bg,
         color: TOK.cream,
-        padding: 'clamp(80px, 14vh, 160px) 0',
+        padding: 'clamp(90px, 14vh, 170px) 0',
         overflow: 'hidden',
       }}
     >
@@ -61,93 +64,68 @@ export default function LithoGallery() {
           position: 'absolute',
           inset: 0,
           background: TEXTURES.grain,
-          mixBlendMode: 'multiply',
           opacity: 0.6,
           pointerEvents: 'none',
         }}
       />
 
       <div style={{ position: 'relative' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            flexWrap: 'wrap',
-            gap: 16,
-            maxWidth: 1400,
-            margin: '0 auto',
-            padding: '0 clamp(24px, 5vw, 80px)',
-            marginBottom: 56,
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontFamily: FONT.mono,
-                fontSize: 11,
-                letterSpacing: '0.32em',
-                textTransform: 'uppercase',
-                color: TOK.sun,
-                marginBottom: 18,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 14,
-              }}
-            >
-              <span style={{ width: 28, height: 1, background: TOK.sun }} />
-              Chapitre III · Quelques projets
-            </div>
-            <h2
-              style={{
-                fontFamily: FONT.display,
-                fontWeight: 800,
-                fontSize: 'clamp(40px, 5.4vw, 84px)',
-                lineHeight: 0.92,
-                letterSpacing: '-0.025em',
-                color: TOK.cream,
-                margin: 0,
-                textTransform: 'uppercase',
-              }}
-            >
-              Quatre <span style={{ color: TOK.sun }}>épreuves.</span>
-            </h2>
-          </div>
+        {/* En-tête : même alignement que les autres sections — conteneur maxW
+            centré à l'intérieur du gutter, pour que le titre partage le bord
+            gauche de « Présentation », « Le métier », etc. */}
+        <div style={{ padding: `0 ${LAYOUT.padX}` }}>
           <div
             style={{
-              fontFamily: FONT.mono,
-              fontSize: 11,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: TOK.mutedCream,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              flexWrap: 'wrap',
+              gap: 16,
+              maxWidth: LAYOUT.maxW,
+              margin: '0 auto',
+              marginBottom: 56,
             }}
           >
-            Alternance · École · Personnel — faire défiler →
+            <div>
+              <Kicker style={{ marginBottom: 18 }}>Chapitre III · Quelques projets</Kicker>
+              <h2 style={TYPE.h2}>
+                Quelques projets
+                <Dot />
+              </h2>
+            </div>
+            <div style={{ ...TYPE.meta, color: TOK.creamFaint }}>faire défiler →</div>
           </div>
         </div>
 
-        {/* Track */}
+        {/* Track — la première carte s'aligne sur le bord gauche du titre
+            (conteneur maxW centré) tout en débordant à droite pour le scroll */}
         <div
           style={{
             display: 'flex',
             gap: 26,
             overflowX: 'auto',
             scrollSnapType: 'x mandatory',
-            padding: '0 clamp(24px, 5vw, 80px) 22px',
+            // scroll-padding aligné sur le padding : sinon le snap « start »
+            // colle la 1re carte au bord et annule l'alignement sous le titre.
+            scrollPaddingLeft: `max(${LAYOUT.padX}, calc((100vw - ${LAYOUT.maxW}px) / 2))`,
+            paddingLeft: `max(${LAYOUT.padX}, calc((100vw - ${LAYOUT.maxW}px) / 2))`,
+            paddingRight: LAYOUT.padX,
+            paddingBottom: 22,
           }}
         >
           {PROJECTS.map((p) => (
             <article
               key={p.idx}
+              className="litho-card"
               style={{
                 position: 'relative',
-                flex: '0 0 clamp(280px, 32vw, 440px)',
+                flex: '0 0 clamp(280px, 32vw, 420px)',
                 aspectRatio: '3 / 4',
-                background: p.bg,
-                color: p.ink,
+                background: TOK.panel,
+                color: TOK.cream,
                 overflow: 'hidden',
                 scrollSnapAlign: 'start',
-                boxShadow: '0 16px 40px rgba(26,18,9,0.25)',
+                boxShadow: '0 18px 44px rgba(20, 16, 10, 0.35)',
               }}
             >
               {/* Affiche frame */}
@@ -155,7 +133,7 @@ export default function LithoGallery() {
                 style={{
                   position: 'absolute',
                   inset: 14,
-                  border: `1px solid ${p.ink === TOK.cream ? 'rgba(248,241,225,0.22)' : 'rgba(26,18,9,0.22)'}`,
+                  border: `1px solid ${TOK.lineSoft}`,
                   pointerEvents: 'none',
                 }}
               />
@@ -170,8 +148,8 @@ export default function LithoGallery() {
                   fontWeight: 800,
                   fontSize: 'clamp(160px, 20vw, 280px)',
                   lineHeight: 0.85,
-                  color: p.ink,
-                  opacity: 0.08,
+                  color: TOK.sun,
+                  opacity: 0.13,
                   letterSpacing: '-0.05em',
                   pointerEvents: 'none',
                 }}
@@ -193,7 +171,7 @@ export default function LithoGallery() {
                     fontSize: 10,
                     letterSpacing: '0.28em',
                     textTransform: 'uppercase',
-                    color: p.ink,
+                    color: TOK.sun,
                   }}
                 >
                   <span
@@ -201,7 +179,7 @@ export default function LithoGallery() {
                       width: 7,
                       height: 7,
                       borderRadius: '50%',
-                      background: p.ink,
+                      background: TOK.sun,
                       animation: 'litho-pulse 1.4s ease-in-out infinite',
                     }}
                   />
@@ -227,8 +205,7 @@ export default function LithoGallery() {
                     fontSize: 10,
                     letterSpacing: '0.3em',
                     textTransform: 'uppercase',
-                    color: p.ink,
-                    opacity: 0.78,
+                    color: TOK.creamMuted,
                   }}
                 >
                   {p.idx} · {p.org}
@@ -239,19 +216,33 @@ export default function LithoGallery() {
                     style={{
                       fontFamily: FONT.display,
                       fontWeight: 800,
-                      fontSize: 'clamp(28px, 2.6vw, 40px)',
-                      lineHeight: 0.92,
+                      fontSize: 'clamp(28px, 2.6vw, 38px)',
+                      lineHeight: 0.94,
                       letterSpacing: '-0.02em',
-                      color: p.ink,
+                      color: TOK.cream,
                       margin: 0,
                       textTransform: 'uppercase',
                     }}
                   >
                     {p.title}
-                    <br />
-                    <span style={{ fontStyle: 'italic', fontFamily: FONT.serif, fontWeight: 400, textTransform: 'none', color: p.ink }}>
-                      {p.sub}.
-                    </span>
+                    {p.sub ? (
+                      <>
+                        <br />
+                        <span
+                          style={{
+                            fontStyle: 'italic',
+                            fontFamily: FONT.serif,
+                            fontWeight: 400,
+                            textTransform: 'none',
+                            color: TOK.creamSoft,
+                          }}
+                        >
+                          {p.sub}.
+                        </span>
+                      </>
+                    ) : (
+                      '.'
+                    )}
                   </h3>
                   <div
                     style={{
@@ -260,8 +251,7 @@ export default function LithoGallery() {
                       fontSize: 10,
                       letterSpacing: '0.26em',
                       textTransform: 'uppercase',
-                      color: p.ink,
-                      opacity: 0.78,
+                      color: TOK.creamMuted,
                     }}
                   >
                     {p.meta}
@@ -272,12 +262,12 @@ export default function LithoGallery() {
                         key={t}
                         style={{
                           fontFamily: FONT.mono,
-                          fontSize: 9,
-                          letterSpacing: '0.18em',
-                          textTransform: 'uppercase',
+                          fontSize: 10,
+                          letterSpacing: '0.12em',
+                          textTransform: 'lowercase',
                           padding: '4px 9px',
-                          border: `1px solid ${p.ink === TOK.cream ? 'rgba(248,241,225,0.35)' : 'rgba(26,18,9,0.35)'}`,
-                          color: p.ink,
+                          border: `1px solid ${TOK.line}`,
+                          color: TOK.creamSoft,
                         }}
                       >
                         {t}
@@ -292,6 +282,17 @@ export default function LithoGallery() {
       </div>
 
       <style>{`
+        .litho-card {
+          border: 1px solid ${TOK.line};
+          transition: border-color 0.25s ease, transform 0.35s ease;
+        }
+        /* Affiches punaisées — légèrement de travers, se redressent au survol */
+        .litho-card:nth-child(odd) { transform: rotate(-0.5deg); }
+        .litho-card:nth-child(even) { transform: rotate(0.45deg); }
+        .litho-card:hover {
+          border-color: ${TOK.sun};
+          transform: rotate(0deg) translateY(-6px);
+        }
         @keyframes litho-pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
           50% { transform: scale(1.4); opacity: 0.4; }

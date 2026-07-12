@@ -1,28 +1,79 @@
+import type { CSSProperties } from 'react';
+
 /**
- * Litho design tokens — shared across all litho-styled sections.
- * Aesthetic: PLM affiche meets editorial photography. Two surfaces (warm light peach
- * + warm dark brown), one saturated accent (vermillon), litho grain texture.
+ * Litho v2 — design system.
+ *
+ * Direction : affiche lithographique éditoriale, sombre et chaude.
+ * Règles de cohérence :
+ *  - Deux niveaux de fond (bg / bgDeep) alternent pour rythmer les sections.
+ *  - L'encre crème a trois intensités (cream / creamSoft / creamMuted).
+ *  - UN accent (sun), réservé aux éléments structurels : kickers de chapitre,
+ *    numéros, point final des titres, états hover, voie alternance du parcours.
+ *  - Tous les titres de section partagent la même échelle (TYPE.h2).
  */
 export const TOK = {
-  // Surfaces — lifted warm-neutral dark (less pitch black, more paper-feel)
-  peach: '#E2D6BD', // light surface — neutral sand/linen accent (used sparingly now)
-  cream: '#F0E7D4', // soft cream for text on dark / soft accents
-  dark: '#2E2820', // warm-neutral dark, lifted from #1B1815 for paper feel
-  panel: '#3B312A', // raised panel on dark — more contrast
-  // Accents
-  sun: '#E27A2E', // burnt orange — warmer, less red, still print-affiche feel
-  sunRim: '#F2A45A', // softer orange for halos
-  // Misc
-  ink: '#2E2820', // text on light surfaces
-  cool: '#3A5266', // cool mid-tone — sparingly, breaks the monochrome
-  mutedCream: 'rgba(240, 231, 212, 0.55)',
-  mutedInk: 'rgba(46, 40, 32, 0.6)',
+  // Surfaces
+  bg: '#2E2820', // base — warm dark, paper feel
+  bgDeep: '#262119', // bande plus profonde, alterne avec bg
+  panel: '#383026', // surface levée (cartes)
+  // Encres
+  cream: '#F0E7D4',
+  creamSoft: 'rgba(240, 231, 212, 0.78)',
+  creamMuted: 'rgba(240, 231, 212, 0.55)',
+  creamFaint: 'rgba(240, 231, 212, 0.34)',
+  // Hairlines
+  line: 'rgba(240, 231, 212, 0.16)',
+  lineSoft: 'rgba(240, 231, 212, 0.09)',
+  // Accent unique
+  sun: '#E27A2E',
+  sunSoft: 'rgba(226, 122, 46, 0.14)',
+  // Teinte réservée au grading photo
+  peach: '#E2D6BD',
+  ink: '#262119',
 };
 
 export const FONT = {
   display: "'Bricolage Grotesque', sans-serif",
   serif: "'Instrument Serif', serif",
   mono: "'JetBrains Mono', monospace",
+};
+
+export const TYPE: Record<'h2' | 'body' | 'meta', CSSProperties> = {
+  /** Titre de section — échelle unique pour tout le site. */
+  h2: {
+    fontFamily: FONT.display,
+    fontWeight: 800,
+    fontSize: 'clamp(42px, 5.6vw, 88px)',
+    lineHeight: 0.92,
+    letterSpacing: '-0.025em',
+    textTransform: 'uppercase',
+    color: TOK.cream,
+    margin: 0,
+  },
+  /** Corps de texte éditorial. */
+  body: {
+    fontFamily: FONT.serif,
+    fontSize: 'clamp(17px, 1.4vw, 21px)',
+    lineHeight: 1.6,
+    color: TOK.creamSoft,
+  },
+  /** Méta mono — légendes, années, indications. */
+  meta: {
+    fontFamily: FONT.mono,
+    fontSize: 11,
+    letterSpacing: '0.24em',
+    textTransform: 'uppercase',
+    color: TOK.creamMuted,
+  },
+};
+
+export const LAYOUT = {
+  // Largeur max du contenu — assez large pour remplir les grands écrans
+  // (sur 1920 : ~160px de marge de chaque côté) sans allonger le texte
+  // (les paragraphes gardent leurs propres limites en ch).
+  maxW: 1600,
+  padX: 'clamp(24px, 5vw, 80px)',
+  sectionPad: 'clamp(90px, 14vh, 170px) clamp(24px, 5vw, 80px)',
 };
 
 /**
