@@ -1,0 +1,58 @@
+name: Deploy portfolio
+
+# Déclenché sur push vers main (+ lancement manuel possible)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-portfolio
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/benjamin-bou/portfolio
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write        # pousser l'image sur GHCR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Connexion à GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push de l'image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Déploiement sur le VPS
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          scp -i ~/.ssh/id_ci docker-compose.prod.yml "deploy@$VPS_HOST:apps/portfolio/docker-compose.yml"
+          ssh -i ~/.ssh/id_ci "deploy@$VPS_HOST" "cd ~/apps/portfolio && echo '$GHCR_TOKEN' | docker login ghcr.io -u '$GH_ACTOR' --password-stdin && docker compose pull && docker compose up -d && docker logout ghcr.io && docker image prune -f"
