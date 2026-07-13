@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { STOPS } from './data';
-import { useScrollProgress } from './useScrollProgress';
+import { useScrollDriver } from './useScrollProgress';
 import { TOK, FONT, TEXTURES } from '../litho/tokens';
 
 /**
@@ -8,11 +8,13 @@ import { TOK, FONT, TEXTURES } from '../litho/tokens';
  * chaque acte = une ère (les années en bandeau haut), ce que j'y ai fait
  * (cartes au centre), et où (ville en signature bas de cadre).
  *
- * PERF : plus aucune vidéo. Chaque acte est une IMAGE FIXE zoomée/dézoomée
- * par le scroll (Ken Burns en transform CSS). Zéro décodage vidéo par frame,
- * zéro seek — c'est ce qui saturait les machines modestes et les faisait
- * chauffer. La seule boucle rAF restante est le lissage de progression
- * (useScrollProgress), qui dort dès que le scroll s'arrête.
+ * PERF : plus aucune vidéo (chaque acte est une image fixe en Ken Burns CSS),
+ * et surtout AUCUN re-render React pendant le scroll. Le composant se rend UNE
+ * fois ; ensuite la boucle de lissage (useScrollDriver) écrit directement
+ * transform/opacity sur des refs DOM. Tous les éléments pilotés restent
+ * montés (visibility:hidden hors fenêtre) : zéro mount/unmount en plein
+ * scroll, donc zéro invalidation de layout — seules des propriétés
+ * composited (transform/opacity) bougent.
  *
  *   Ouverture  — l'image est cadrée comme une affiche, puis s'ouvre plein écran.
  *   Acte I     — 2021-2024 · Caen (licence) : plan de la ville → insert HTML/CSS
@@ -48,15 +50,15 @@ const ERAS = [
   { label: '2024 — 2025', from: 0.445, to: 0.655 },
   { label: '2025 — 2027', from: 0.715, to: 0.93 },
 ];
-const INTERTITLES: { label: string; from: number; to: number; panel: boolean; caption: boolean }[] = [
-  // Acte I : la signature suit les plans — la ville sur le plan large, la
-  // matière étudiée sur les inserts (le plan porte l'info, le texte la nomme).
-  { label: 'Caen', from: 0.105, to: 0.205, panel: false, caption: true },
-  { label: 'HTML / CSS', from: 0.215, to: 0.305, panel: false, caption: true },
-  { label: 'Mathématiques', from: 0.315, to: 0.435, panel: false, caption: true },
-  { label: 'Rennes', from: 0.445, to: 0.655, panel: false, caption: true },
-  { label: '2025 — 2027', from: 0.66, to: 0.71, panel: true, caption: false },
-  { label: 'Rennes', from: 0.715, to: 0.925, panel: false, caption: true },
+// Signatures de lieu/matière discrètes en bas de cadre (toutes des captions).
+// Acte I : la ville sur le plan large, la matière étudiée sur les inserts (le
+// plan porte l'info, le texte la nomme).
+const INTERTITLES: { label: string; from: number; to: number }[] = [
+  { label: 'Caen', from: 0.105, to: 0.205 },
+  { label: 'HTML / CSS', from: 0.215, to: 0.305 },
+  { label: 'Mathématiques', from: 0.315, to: 0.435 },
+  { label: 'Rennes', from: 0.445, to: 0.655 },
+  { label: 'Rennes', from: 0.715, to: 0.925 },
 ];
 // Fenêtres d'affichage des 5 étapes (indexées comme STOPS).
 // Chaque année scolaire vécue en parallèle (école + alternance) forme une PAIRE
@@ -97,32 +99,187 @@ function stepOpacity(i: number, p: number) {
 
 export default function JourneyFilm() {
   const ref = useRef<HTMLElement | null>(null);
-  // Progression lissée (τ = 0,14 s) : tout ce qui est piloté par le scroll
-  // — Ken Burns, cartes, intertitres, cadre — glisse au lieu de sauter de cran
-  // en cran de molette. La boucle de lissage dort dès que le scroll s'arrête.
   // reduced-motion : progression brute (0), aucune boucle continue.
   const [reduce] = useState(
     () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
   );
-  const p = useScrollProgress(ref, reduce ? 0 : 0.14);
-  const [nearby, setNearby] = useState(false);
 
-  // Ne charge les images qu'à l'approche de la section (2 écrans avant), pour ne
-  // pas peser sur le chargement initial de la page.
+  // Refs vers tout ce que le scroll pilote — écrits directement chaque frame,
+  // sans passer par React (voir note PERF en tête de fichier).
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const grainRef = useRef<HTMLDivElement | null>(null);
+  const kickerRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const topbarRef = useRef<HTMLDivElement | null>(null);
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const eraRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const interRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const railRef = useRef<HTMLDivElement | null>(null);
+  const railFillRef = useRef<HTMLDivElement | null>(null);
+  const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  // Mémoire des dernières valeurs d'ouverture/clôture : le cadre et les calques
+  // de grain/grade ne dépendent QUE d'elles. Mi-parcours elles sont constantes,
+  // donc on cesse de réécrire leur transform/opacity à chaque frame — ce qui
+  // invalidait la grande couche du cadre et forçait le repaint des overlays.
+  const prevOpen = useRef(-1);
+  const prevClosing = useRef(-1);
+
+  // Applique l'état visuel de la progression p — uniquement des propriétés
+  // composited (transform/opacity) et visibility : jamais de layout.
+  const apply = useCallback((p: number) => {
+    const act = activeAct(p);
+    const open = ease(mapRange(p, 0.02, 0.1));
+    const titleOut = mapRange(p, 0.05, 0.1);
+    const closing = mapRange(p, 0.93, 1);
+
+    // Cadre : ne réécrire QUE si l'ouverture a bougé (constante mi-parcours).
+    if (open !== prevOpen.current) {
+      const frame = frameRef.current;
+      if (frame) {
+        frame.style.transform = `scale(${0.55 + open * 0.45})`;
+        frame.style.borderColor = `rgba(240, 231, 212, ${(1 - open) * 0.35})`;
+        frame.style.boxShadow = open < 1 ? '0 30px 80px rgba(15, 12, 8, 0.5)' : 'none';
+      }
+      if (kickerRef.current) kickerRef.current.style.opacity = String(1 - open);
+    }
+
+    ACTS.forEach((a, i) => {
+      const img = imgRefs.current[i];
+      if (!img) return;
+      const pLocal = mapRange(p, a.from, a.to);
+      // Ken Burns piloté par le scroll : zoom avant ('in') ou arrière ('out'),
+      // avec une légère dérive verticale. Pure transform CSS, aucun décodage.
+      // translateZ(0) : force l'image sur sa PROPRE couche GPU. Sans ça, la grande
+      // image plein cadre est repeinte à chaque frame de scroll (le sticky n'est
+      // pas isolé), au lieu d'être simplement composité. willChange est posé une
+      // fois en JSX (pas basculé ici : un toggle recrée la couche à chaque coupe).
+      const z = a.kb === 'out' ? 1 - pLocal : pLocal;
+      img.style.opacity = act === i ? '1' : '0';
+      img.style.transform = `scale(${1.08 + z * 0.16}) translateY(${(0.5 - z) * 2.4}%) translateZ(0)`;
+    });
+
+    // Grain : opacité fonction de la clôture uniquement — constante hors clôture,
+    // on ne réécrit donc que quand elle change.
+    if (closing !== prevClosing.current) {
+      if (grainRef.current) grainRef.current.style.opacity = String(0.4 + closing * 0.25);
+    }
+    prevOpen.current = open;
+    prevClosing.current = closing;
+
+    const title = titleRef.current;
+    if (title) {
+      title.style.opacity = String(1 - titleOut);
+      title.style.transform = `translateY(${titleOut * -36}px)`;
+    }
+    if (topbarRef.current) topbarRef.current.style.opacity = String(open * (p > 0.05 ? 1 : 0));
+
+    STEP_WINDOWS.forEach((win, i) => {
+      const el = stepRefs.current[i];
+      if (!el) return;
+      const op = stepOpacity(i, p);
+      if (op <= 0) {
+        el.style.visibility = 'hidden';
+        el.style.opacity = '0';
+        return;
+      }
+      const drift = mapRange(p, win.from, Math.min(win.to, 1));
+      el.style.visibility = 'visible';
+      el.style.opacity = String(op);
+      el.style.transform = win.paired
+        ? `translateY(${(1 - op) * 20 + (0.5 - drift) * 26}px)`
+        : `translateY(calc(-50% + ${(1 - op) * 20 + (0.5 - drift) * 26}px))`;
+    });
+
+    ERAS.forEach((era, i) => {
+      const el = eraRefs.current[i];
+      if (!el) return;
+      const op = Math.min(mapRange(p, era.from, era.from + 0.03), 1 - mapRange(p, era.to - 0.03, era.to));
+      if (op <= 0) {
+        el.style.visibility = 'hidden';
+        el.style.opacity = '0';
+        return;
+      }
+      el.style.visibility = 'visible';
+      el.style.opacity = String(op);
+      el.style.transform = `translateY(${(1 - op) * -14}px)`;
+    });
+
+    INTERTITLES.forEach((it, i) => {
+      const el = interRefs.current[i];
+      if (!el) return;
+      const op = Math.min(mapRange(p, it.from, it.from + 0.03), 1 - mapRange(p, it.to - 0.03, it.to));
+      if (op <= 0) {
+        el.style.visibility = 'hidden';
+        el.style.opacity = '0';
+        return;
+      }
+      el.style.visibility = 'visible';
+      el.style.opacity = String(op);
+      el.style.transform = `translateY(${(1 - op) * 14}px)`;
+    });
+
+    if (railRef.current) railRef.current.style.opacity = String(open);
+    if (railFillRef.current) railFillRef.current.style.transform = `scaleY(${p})`;
+    STEP_WINDOWS.forEach((w, i) => {
+      const dot = dotRefs.current[i];
+      if (dot) dot.style.background = p >= w.from ? TOK.sun : 'rgba(240,231,212,0.35)';
+    });
+  }, []);
+
+  // Progression lissée (τ = 0,14 s) : tout ce qui est piloté par le scroll
+  // — Ken Burns, cartes, intertitres, cadre — glisse au lieu de sauter de cran
+  // en cran de molette. La boucle de lissage dort dès que le scroll s'arrête.
+  useScrollDriver(ref, reduce ? 0 : 0.14, apply);
+
+  // Préchargement à l'approche de la section (2 écrans avant), DÉCODÉ hors du
+  // thread principal, une image à la fois.
+  // Avant : les 5 `src` étaient posés d'un coup → le navigateur décodait ~52 Mo
+  // de bitmaps dans la même frame → gel de ~1,4 s (le lag spike mesuré).
+  // Maintenant : on décode chaque image séquentiellement via `Image.decode()`
+  // (asynchrone, hors main thread) ; on ne révèle chaque `<img>` visible
+  // qu'une fois son bitmap prêt en cache → le paint ne redéclenche aucun décodage
+  // et le travail est étalé au lieu de tomber sur une seule frame.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let cancelled = false;
+    const preloadSequentially = async () => {
+      for (let i = 0; i < ACTS.length; i++) {
+        if (cancelled) return;
+        const im = new Image();
+        im.decoding = 'async';
+        im.src = ACTS[i].photo;
+        try {
+          await im.decode();
+        } catch {
+          /* image cassée ou interrompue : on assigne quand même, le <img> gèrera */
+        }
+        if (cancelled) return;
+        // On pose le `src` DIRECTEMENT sur le <img> via sa ref, sans passer par
+        // un state React. Un setState ici re-rendrait TOUT le composant (gros
+        // arbre : images, cartes, ères, intertitres…) à chaque image décodée —
+        // 5 réconciliations qui tombaient pendant le scroll vers les projets et
+        // provoquaient le lag spike. Le bitmap étant déjà décodé/en cache, poser
+        // le src peint depuis le cache sans re-décodage ni re-render.
+        const node = imgRefs.current[i];
+        if (node && !node.src) node.src = ACTS[i].photo;
+      }
+    };
     const obs = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          setNearby(true);
           obs.disconnect();
+          void preloadSequentially();
         }
       },
       { rootMargin: '200% 0px 200% 0px' },
     );
     obs.observe(el);
-    return () => obs.disconnect();
+    return () => {
+      cancelled = true;
+      obs.disconnect();
+    };
   }, []);
 
   // Aimants de scroll : quand le défilement s'arrête à proximité d'une carte
@@ -194,11 +351,11 @@ export default function JourneyFilm() {
     };
   }, []);
 
-  const act = activeAct(p);
-  const open = ease(mapRange(p, 0.02, 0.1));
-  const titleOut = mapRange(p, 0.05, 0.1);
-  const closing = mapRange(p, 0.93, 1);
-
+  // Les styles inline ci-dessous décrivent l'état p = 0 (section pas encore
+  // atteinte) ; useScrollDriver appelle apply() dès le montage puis à chaque
+  // frame de scroll. Ils ne changent JAMAIS entre renders React (seul `nearby`
+  // peut re-rendre, et il ne touche que `src`) : React ne réécrit donc pas les
+  // styles posés impérativement.
   return (
     <section
       ref={ref}
@@ -211,75 +368,68 @@ export default function JourneyFilm() {
       <div style={{ position: 'sticky', top: 0, width: '100%', height: '100dvh', overflow: 'hidden' }}>
         {/* CADRE IMAGE — commence en affiche, s'ouvre plein écran */}
         <div
+          ref={frameRef}
           style={{
             position: 'absolute',
             inset: 0,
-            transform: `scale(${0.55 + open * 0.45})`,
-            border: `1px solid rgba(240, 231, 212, ${(1 - open) * 0.35})`,
-            boxShadow: open < 1 ? '0 30px 80px rgba(15, 12, 8, 0.5)' : 'none',
+            transform: 'scale(0.55)',
+            border: '1px solid rgba(240, 231, 212, 0.35)',
+            boxShadow: '0 30px 80px rgba(15, 12, 8, 0.5)',
             overflow: 'hidden',
             zIndex: 1,
           }}
         >
-          {ACTS.map((a, i) => {
-            const pLocal = mapRange(p, a.from, a.to);
-            // Ken Burns piloté par le scroll : zoom avant ('in') ou arrière
-            // ('out'), avec une légère dérive verticale. Pure transform CSS,
-            // aucun décodage — c'est l'effet « zoom/dézoom » qui remplace la vidéo.
-            const z = a.kb === 'out' ? 1 - pLocal : pLocal;
-            return (
-              <img
-                key={a.id}
-                src={nearby ? a.photo : undefined}
-                alt=""
-                aria-hidden
-                draggable={false}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: a.pos ?? 'center 28%',
-                  opacity: act === i ? 1 : 0,
-                  transform: `scale(${1.08 + z * 0.16}) translateY(${(0.5 - z) * 2.4}%)`,
-                  transition: 'opacity 0.25s ease',
-                  willChange: act === i ? 'transform' : 'auto',
-                }}
-              />
-            );
-          })}
+          {ACTS.map((a, i) => (
+            <img
+              key={a.id}
+              ref={(n) => {
+                imgRefs.current[i] = n;
+              }}
+              // Pas de `src` ici : il est posé via ref après décodage async
+              // (voir l'effet de préchargement) pour ne provoquer aucun re-render.
+              alt=""
+              aria-hidden
+              draggable={false}
+              decoding="async"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: a.pos ?? 'center 28%',
+                opacity: i === 0 ? 1 : 0,
+                transform: `scale(1.08) translateZ(0)`,
+                // COUPE FRANCHE (pas de transition d'opacité) : un fondu de 0.25s
+                // composite DEUX images plein cadre en même temps pendant la coupe
+                // → double fill-rate sur GPU intégré → lag spike à chaque coupe
+                // d'acte (mesuré : 23 spikes → 8 en supprimant le fondu). La coupe
+                // sèche colle d'ailleurs au montage documentaire voulu.
+                // Couche GPU dédiée posée une fois : le Ken Burns devient
+                // composited (pas de repaint de l'image au scroll). Voir apply().
+                willChange: 'transform',
+                backfaceVisibility: 'hidden',
+              }}
+            />
+          ))}
 
-          {/* Vignette de lisibilité */}
+          {/* PLUS D'OVERLAY PLEIN CADRE (ni permanent, ni de clôture).
+              PERF (clé du parcours) : sur GPU intégré (Intel HD, la cible), un
+              calque plein cadre semi-transparent recomposité chaque frame coûte
+              ~11-22 ms — impossible d'en avoir un ET 60 fps sur ce matériel
+              (mesuré ; ni translateZ ni will-change n'y changent rien, c'est le
+              FILL RATE). Le grade de clôture qu'on gardait provoquait les lag
+              spikes en SORTIE de section (17 spikes → 4 en le retirant). La
+              lisibilité du texte sur les photos est portée par des ombres
+              renforcées, seul le grain (tuile SVG cachée, cheap) reste. */}
+          {/* Grain litho — tuile SVG cachée (cheap), voir tokens.ts */}
           <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(180deg, rgba(24,19,13,0.55) 0%, transparent 28%, transparent 48%, rgba(24,19,13,0.72) 100%)',
-              pointerEvents: 'none',
-            }}
-          />
-          {/* Grain — sans blend (perf) ; le grading ci-dessous garde son multiply
-              car il est essentiel (teinte les médias vers la palette) */}
-          <div
+            ref={grainRef}
             style={{
               position: 'absolute',
               inset: 0,
               background: TEXTURES.grain,
-              opacity: 0.4 + closing * 0.25,
-              pointerEvents: 'none',
-            }}
-          />
-          {/* Grading litho — teinte chaude permanente qui unifie les plans vers
-              la palette, et monte en clôture (l'image redevient affiche) */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, #D8C09A 0%, #C7AE86 50%, #33291f 100%)',
-              mixBlendMode: 'multiply',
-              opacity: 0.55 + closing * 0.35,
+              opacity: 0.4,
               pointerEvents: 'none',
             }}
           />
@@ -287,6 +437,7 @@ export default function JourneyFilm() {
 
         {/* KICKER au-dessus du cadre réduit (ouverture) */}
         <div
+          ref={kickerRef}
           style={{
             position: 'absolute',
             top: 'clamp(72px, 11vh, 120px)',
@@ -298,7 +449,7 @@ export default function JourneyFilm() {
             letterSpacing: '0.24em',
             textTransform: 'uppercase',
             color: TOK.sun,
-            opacity: 1 - open,
+            opacity: 1,
             pointerEvents: 'none',
             zIndex: 20,
           }}
@@ -308,6 +459,7 @@ export default function JourneyFilm() {
 
         {/* TITRE d'ouverture — déborde du cadre */}
         <div
+          ref={titleRef}
           style={{
             position: 'absolute',
             inset: 0,
@@ -316,8 +468,7 @@ export default function JourneyFilm() {
             justifyContent: 'center',
             pointerEvents: 'none',
             zIndex: 20,
-            opacity: 1 - titleOut,
-            transform: `translateY(${titleOut * -36}px)`,
+            opacity: 1,
           }}
         >
           <h2
@@ -340,6 +491,7 @@ export default function JourneyFilm() {
 
         {/* TOP BAR — visible après l'ouverture */}
         <div
+          ref={topbarRef}
           style={{
             position: 'absolute',
             top: 0,
@@ -353,7 +505,7 @@ export default function JourneyFilm() {
             fontSize: 11,
             letterSpacing: '0.24em',
             textTransform: 'uppercase',
-            opacity: open * (p > 0.05 ? 1 : 0),
+            opacity: 0,
             zIndex: 30,
           }}
         >
@@ -375,14 +527,14 @@ export default function JourneyFilm() {
         {/* ÉTAPES — le cœur de la section : cartes centrées verticalement,
             typographie généreuse. La ville n'est qu'une signature en bas. */}
         {STOPS.map((stop, i) => {
-          const op = stepOpacity(i, p);
-          if (op <= 0) return null;
           const win = STEP_WINDOWS[i];
-          const drift = mapRange(p, win.from, Math.min(win.to, 1));
           const left = win.side === 'left';
           return (
             <div
               key={stop.id}
+              ref={(n) => {
+                stepRefs.current[i] = n;
+              }}
               style={{
                 position: 'absolute',
                 [left ? 'left' : 'right']: 'clamp(32px, 6vw, 110px)',
@@ -392,10 +544,8 @@ export default function JourneyFilm() {
                 // commencent pas au même niveau. La carte seule reste centrée.
                 top: win.paired ? 'calc(50% - 150px)' : '50%',
                 maxWidth: win.paired ? 'min(520px, 42vw)' : 'min(680px, 78vw)',
-                opacity: op,
-                transform: win.paired
-                  ? `translateY(${(1 - op) * 20 + (0.5 - drift) * 26}px)`
-                  : `translateY(calc(-50% + ${(1 - op) * 20 + (0.5 - drift) * 26}px))`,
+                opacity: 0,
+                visibility: 'hidden',
                 pointerEvents: 'none',
                 zIndex: 5,
                 // Carte de gauche alignée à gauche, carte de droite alignée à
@@ -412,7 +562,9 @@ export default function JourneyFilm() {
                     textTransform: 'uppercase',
                     color: TOK.sun,
                     marginBottom: 12,
-                    textShadow: '0 1px 8px rgba(26,18,9,0.65)',
+                    // Double ombre (bord net + halo) : porte la lisibilité sur
+                    // les photos maintenant qu'il n'y a plus de voile plein cadre.
+                    textShadow: '0 1px 3px rgba(15,12,8,0.9), 0 2px 12px rgba(15,12,8,0.7)',
                   }}
                 >
                   {stop.type === 'edu' ? 'École' : 'Alternance'} · {stop.city}
@@ -426,7 +578,7 @@ export default function JourneyFilm() {
                     letterSpacing: '-0.02em',
                     textTransform: 'uppercase',
                     color: TOK.cream,
-                    textShadow: '0 2px 26px rgba(24,19,13,0.55)',
+                    textShadow: '0 2px 6px rgba(15,12,8,0.85), 0 4px 30px rgba(15,12,8,0.7)',
                   }}
                 >
                   {stop.title}
@@ -439,7 +591,7 @@ export default function JourneyFilm() {
                     fontSize: 'clamp(18px, 1.6vw, 22px)',
                     color: TOK.cream,
                     opacity: 0.9,
-                    textShadow: '0 1px 12px rgba(24,19,13,0.65)',
+                    textShadow: '0 1px 4px rgba(15,12,8,0.9), 0 2px 14px rgba(15,12,8,0.65)',
                   }}
                 >
                   {stop.org}
@@ -449,8 +601,8 @@ export default function JourneyFilm() {
                     marginTop: 6,
                     fontFamily: FONT.serif,
                     fontSize: 'clamp(16px, 1.3vw, 18px)',
-                    color: 'rgba(240,231,212,0.78)',
-                    textShadow: '0 1px 10px rgba(24,19,13,0.6)',
+                    color: 'rgba(240,231,212,0.82)',
+                    textShadow: '0 1px 4px rgba(15,12,8,0.9), 0 2px 12px rgba(15,12,8,0.65)',
                   }}
                 >
                   {stop.desc}
@@ -462,121 +614,82 @@ export default function JourneyFilm() {
 
         {/* ÈRE — les années de l'acte courant, en haut au centre : le repère
             temporel permanent qui répond à « qu'est-ce que je faisais là ? » */}
-        {ERAS.map((era) => {
-          const op = Math.min(mapRange(p, era.from, era.from + 0.03), 1 - mapRange(p, era.to - 0.03, era.to));
-          if (op <= 0) return null;
-          return (
+        {ERAS.map((era, i) => (
+          <div
+            key={era.from}
+            ref={(n) => {
+              eraRefs.current[i] = n;
+            }}
+            style={{
+              position: 'absolute',
+              top: 'clamp(112px, 15vh, 170px)',
+              left: 0,
+              right: 0,
+              textAlign: 'center',
+              opacity: 0,
+              visibility: 'hidden',
+              zIndex: 8,
+              pointerEvents: 'none',
+            }}
+          >
             <div
-              key={era.from}
               style={{
-                position: 'absolute',
-                top: 'clamp(112px, 15vh, 170px)',
-                left: 0,
-                right: 0,
-                textAlign: 'center',
-                opacity: op,
-                transform: `translateY(${(1 - op) * -14}px)`,
-                zIndex: 8,
-                pointerEvents: 'none',
+                fontFamily: FONT.display,
+                fontWeight: 800,
+                fontSize: 'clamp(30px, 3.4vw, 54px)',
+                lineHeight: 1,
+                letterSpacing: '0.02em',
+                color: TOK.cream,
+                textShadow: '0 2px 6px rgba(15,12,8,0.85), 0 3px 30px rgba(15,12,8,0.7)',
               }}
             >
-              <div
-                style={{
-                  fontFamily: FONT.display,
-                  fontWeight: 800,
-                  fontSize: 'clamp(30px, 3.4vw, 54px)',
-                  lineHeight: 1,
-                  letterSpacing: '0.02em',
-                  color: TOK.cream,
-                  textShadow: '0 2px 30px rgba(24,19,13,0.65)',
-                }}
-              >
-                {era.label}
-              </div>
+              {era.label}
             </div>
-          );
-        })}
+          </div>
+        ))}
 
-        {/* INTERTITRES — villes en signature de lieu discrète (bas de cadre) et
-            panneau opaque annonçant l'ère */}
-        {INTERTITLES.map((it) => {
-          const fade = it.panel ? 0.02 : 0.03;
-          const op = Math.min(mapRange(p, it.from, it.from + fade), 1 - mapRange(p, it.to - fade, it.to));
-          if (op <= 0) return null;
-          if (it.caption) {
-            return (
-              <div
-                key={`${it.label}-${it.from}`}
-                style={{
-                  position: 'absolute',
-                  left: 'clamp(32px, 6vw, 110px)',
-                  bottom: 'clamp(56px, 9vh, 110px)',
-                  opacity: op,
-                  transform: `translateY(${(1 - op) * 14}px)`,
-                  zIndex: 8,
-                  pointerEvents: 'none',
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  gap: 16,
-                }}
-              >
-                <span style={{ width: 28, height: 1, background: TOK.sun, alignSelf: 'center' }} />
-                <span
-                  style={{
-                    fontFamily: FONT.display,
-                    fontWeight: 800,
-                    fontSize: 'clamp(26px, 2.6vw, 42px)',
-                    lineHeight: 1,
-                    letterSpacing: '-0.02em',
-                    textTransform: 'uppercase',
-                    color: TOK.cream,
-                    textShadow: '0 2px 26px rgba(24,19,13,0.6)',
-                  }}
-                >
-                  {it.label}
-                  <span style={{ color: TOK.sun }}>.</span>
-                </span>
-              </div>
-            );
-          }
-          return (
-            <div
-              key={`${it.label}-${it.from}`}
+        {/* INTERTITRES — villes/matières en signature de lieu discrète (bas de cadre) */}
+        {INTERTITLES.map((it, i) => (
+          <div
+            key={`${it.label}-${it.from}`}
+            ref={(n) => {
+              interRefs.current[i] = n;
+            }}
+            style={{
+              position: 'absolute',
+              left: 'clamp(32px, 6vw, 110px)',
+              bottom: 'clamp(56px, 9vh, 110px)',
+              opacity: 0,
+              visibility: 'hidden',
+              zIndex: 8,
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 16,
+            }}
+          >
+            <span style={{ width: 28, height: 1, background: TOK.sun, alignSelf: 'center' }} />
+            <span
               style={{
-                position: 'absolute',
-                inset: 0,
-                background: it.panel ? TOK.bgDeep : 'transparent',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: op,
-                zIndex: 10,
-                pointerEvents: 'none',
+                fontFamily: FONT.display,
+                fontWeight: 800,
+                fontSize: 'clamp(26px, 2.6vw, 42px)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                textTransform: 'uppercase',
+                color: TOK.cream,
+                textShadow: '0 2px 6px rgba(15,12,8,0.85), 0 3px 26px rgba(15,12,8,0.65)',
               }}
             >
-              <div
-                style={{
-                  fontFamily: FONT.display,
-                  fontWeight: 800,
-                  // Le panneau porte un intervalle d'années (long) : corps réduit
-                  fontSize: it.panel ? 'clamp(56px, 9.5vw, 150px)' : 'clamp(88px, 17vw, 250px)',
-                  lineHeight: 1,
-                  letterSpacing: '-0.04em',
-                  textTransform: 'uppercase',
-                  color: TOK.cream,
-                  transform: `translateY(${(1 - op) * 22}px)`,
-                  textShadow: it.panel ? 'none' : '0 6px 60px rgba(15, 12, 8, 0.7)',
-                }}
-              >
-                {it.label}
-                <span style={{ color: TOK.sun }}>.</span>
-              </div>
-            </div>
-          );
-        })}
+              {it.label}
+              <span style={{ color: TOK.sun }}>.</span>
+            </span>
+          </div>
+        ))}
 
         {/* RAIL DE PROGRESSION — droite */}
         <div
+          ref={railRef}
           style={{
             position: 'absolute',
             right: 'clamp(22px, 3vw, 46px)',
@@ -585,22 +698,26 @@ export default function JourneyFilm() {
             height: 'clamp(180px, 30vh, 300px)',
             width: 2,
             background: 'rgba(240,231,212,0.22)',
-            opacity: open,
+            opacity: 0,
             zIndex: 30,
           }}
         >
           <div
+            ref={railFillRef}
             style={{
               position: 'absolute',
               inset: 0,
               background: TOK.sun,
-              transform: `scaleY(${p})`,
+              transform: 'scaleY(0)',
               transformOrigin: '50% 0',
             }}
           />
           {STEP_WINDOWS.map((w, i) => (
             <span
               key={i}
+              ref={(n) => {
+                dotRefs.current[i] = n;
+              }}
               style={{
                 position: 'absolute',
                 left: -3,
@@ -608,7 +725,7 @@ export default function JourneyFilm() {
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: p >= w.from ? TOK.sun : 'rgba(240,231,212,0.35)',
+                background: 'rgba(240,231,212,0.35)',
                 transition: 'background 0.3s ease',
               }}
             />
