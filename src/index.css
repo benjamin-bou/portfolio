@@ -51,6 +51,95 @@ body {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * HERO — entrée cinématographique puis boucle d'ambiance.
+ * Le chronogramme est piloté depuis LithoHero.tsx (durée d'entrée D et
+ * période de boucle), ces keyframes n'en décrivent que les états.
+ * Toutes les propriétés animées sont composited (opacity/transform).
+ * ------------------------------------------------------------------ */
+
+/* 1. Aube — la scène naît du noir */
+@keyframes lithoDawn {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* 2. Anneau solaire — surgit avec rebond (l'overshoot vient du cubic-bezier) */
+@keyframes lithoRingIn {
+  from { opacity: 0; transform: scale(0.2); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* 3. Soleil — se lève de sous l'anneau, dépasse, puis se pose */
+@keyframes lithoSunrise {
+  0%   { transform: translateY(130%) scale(0.7); }
+  65%  { transform: translateY(-6%) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 4. Flash chaud — monte puis retombe */
+@keyframes lithoFlash {
+  0%   { opacity: 0; }
+  45%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 5. Halo — bloom : jaillit, dépasse, se stabilise */
+@keyframes lithoHaloBloom {
+  0%   { opacity: 0; transform: scale(0.3); }
+  55%  { opacity: 1; transform: scale(1.35); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 6. Titre — chaque ligne monte derrière son masque (overflow:hidden) */
+@keyframes lithoLineUp {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
+}
+
+/* 7. Point final orange */
+@keyframes lithoDotPop {
+  0%   { transform: scale(0); }
+  60%  { transform: scale(1.5); }
+  100% { transform: scale(1); }
+}
+
+/* 8. Filet — se trace de la gauche vers la droite */
+@keyframes lithoRuleIn {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* 8bis. Sous-titre — l'opacité finale (0.92) est celle du design */
+@keyframes lithoFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 0.92; transform: translateY(0); }
+}
+
+/* Boucles d'ambiance — enchaînées après l'entrée, sur les mêmes états finaux
+   (scale 1 / translateY 0 / opacity 1) pour un raccord invisible. */
+@keyframes lithoHaloBreathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.12); }
+}
+@keyframes lithoSunDrift {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-5%) scale(1.03); }
+}
+@keyframes lithoRingPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.02); }
+}
+
+/* Accessibilité : filet de sécurité côté CSS (le composant coupe déjà les
+   animations en JS). !important pour battre les `animation` inline. */
+@media (prefers-reduced-motion: reduce) {
+  #hero,
+  #hero * {
+    animation: none !important;
+  }
+}
+
 ::selection {
   background: #E27A2E;
   color: #262119;
